@@ -179,9 +179,9 @@ app.use(express.json());
 // Access API_URL from .env
 const apiUrl = process.env.API_URL;
 // Example: Use apiUrl in an endpoint or middleware
-app.get('/api/test', (req, res) => {
+app.get('/', (req, res) => {
   console.log(apiUrl)
-  res.send(`API URL is: ${apiUrl}`);
+  res.send("Heloo");
 });
 // Authentication routes
 app.use('/api', authRoutes); // Ensure this path matches your API route
