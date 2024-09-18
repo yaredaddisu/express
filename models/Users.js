@@ -191,6 +191,8 @@ async function getUserById(userId) {
         j.description AS job_description,
         j.latitude AS job_latitude,
         j.longitude AS job_longitude,
+        j.created_at AS job_created_at,
+        j.updated_at AS job_updated_at,
         jt.technician_id,
         jt.departureLocation,
         jt.dispatchTime,
@@ -198,7 +200,10 @@ async function getUserById(userId) {
         jt.driver,
         jt.status AS jt_status,
         jt.messageId,
-        jt.description AS jt_description
+        jt.description AS jt_description,
+        jt.chat_id AS jt_chat_id,
+        jt.created_at AS jt_created_at,
+        jt.updated_at AS jt_updated_at
       FROM users u
       LEFT JOIN jobs j ON u.id = j.technician_id
       LEFT JOIN job_technicians jt ON j.id = jt.job_id
@@ -218,8 +223,7 @@ async function getUserById(userId) {
         username: rows[0].username,
         latitude: rows[0].latitude,
         longitude: rows[0].longitude,
-        skills:  rows[0].skills || '[]', // Parse JSON string to object
-        // skills: JSON.parse(rows[0].skills || '[]'), // Parse JSON string to object
+        skills: rows[0].skills || '[]', // Handle skills
         experience: rows[0].experience,
         status: rows[0].status,
         role: rows[0].role,
@@ -239,22 +243,19 @@ async function getUserById(userId) {
             // If job exists, add to job_technicians if not already added
             if (row.technician_id && !existingJob.job_technicians.find(jt => jt.technician_id === row.technician_id)) {
               existingJob.job_technicians.push({
-                id: row.jt_id,                   // Job technician ID
-                job_id: row.job_id,               // Job ID
-                technician_id: row.technician_id, // Technician ID
-                chat_id: row.chat_id,             // Chat ID
+                technician_id: row.technician_id,
                 departureLocation: row.departureLocation,
                 dispatchTime: row.dispatchTime,
                 eta: row.eta,
                 driver: row.driver,
-                status: row.jt_status,            // Technician job status
+                status: row.jt_status,
                 messageId: row.messageId,
-                description: row.jt_description,  // Technician job description
-                created_at: row.jt_created_at,    // Record creation time
-                updated_at: row.jt_updated_at     // Last record update time
+                description: row.jt_description,
+                chat_id: row.jt_chat_id,
+                created_at: row.jt_created_at,
+                updated_at: row.jt_updated_at
               });
             }
-            
           } else {
             // Add new job along with job_technicians
             user.jobs.push({
@@ -270,15 +271,21 @@ async function getUserById(userId) {
               description: row.job_description,
               latitude: row.job_latitude,
               longitude: row.job_longitude,
+              created_at: row.job_created_at,
+              updated_at: row.job_updated_at,
               job_technicians: row.technician_id ? [{
-                technician_id: row.technician_id,
+                id: row.technician_id,
                 departureLocation: row.departureLocation,
                 dispatchTime: row.dispatchTime,
                 eta: row.eta,
+                job_id: row.job_id,
                 driver: row.driver,
                 status: row.jt_status,
                 messageId: row.messageId,
-                description: row.jt_description
+                description: row.jt_description,
+                chat_id: row.jt_chat_id,
+                created_at: row.jt_created_at,
+                updated_at: row.jt_updated_at
               }] : []
             });
           }
