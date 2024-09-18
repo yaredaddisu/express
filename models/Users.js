@@ -179,6 +179,7 @@ async function getUserById(userId) {
         u.email_verified_at,
         u.created_at,
         u.updated_at,
+        u.chat_id, /* User chat_id */
         j.id AS job_id, 
         j.title AS job_title, 
         j.company AS job_company,
@@ -193,6 +194,7 @@ async function getUserById(userId) {
         j.longitude AS job_longitude,
         j.created_at AS job_created_at,
         j.updated_at AS job_updated_at,
+        jt.id AS jt_id,
         jt.technician_id,
         jt.departureLocation,
         jt.dispatchTime,
@@ -223,14 +225,15 @@ async function getUserById(userId) {
         username: rows[0].username,
         latitude: rows[0].latitude,
         longitude: rows[0].longitude,
-        skills: rows[0].skills || '[]', // Handle skills
         experience: rows[0].experience,
         status: rows[0].status,
+        skills: rows[0].skills,
         role: rows[0].role,
         availability: rows[0].availability,
         email_verified_at: rows[0].email_verified_at,
         created_at: rows[0].created_at,
         updated_at: rows[0].updated_at,
+        chat_id: rows[0].chat_id,
         jobs: []
       };
 
@@ -243,17 +246,19 @@ async function getUserById(userId) {
             // If job exists, add to job_technicians if not already added
             if (row.technician_id && !existingJob.job_technicians.find(jt => jt.technician_id === row.technician_id)) {
               existingJob.job_technicians.push({
+                id: row.jt_id,
                 technician_id: row.technician_id,
+                job_id: row.job_id,
                 departureLocation: row.departureLocation,
                 dispatchTime: row.dispatchTime,
                 eta: row.eta,
                 driver: row.driver,
                 status: row.jt_status,
-                messageId: row.messageId,
-                description: row.jt_description,
-                chat_id: row.jt_chat_id,
                 created_at: row.jt_created_at,
-                updated_at: row.jt_updated_at
+                updated_at: row.jt_updated_at,
+                chat_id: row.jt_chat_id,
+                messageId: row.messageId,
+                description: row.jt_description
               });
             }
           } else {
@@ -273,19 +278,21 @@ async function getUserById(userId) {
               longitude: row.job_longitude,
               created_at: row.job_created_at,
               updated_at: row.job_updated_at,
+              technician_id: row.technician_id, // For jobs themselves
               job_technicians: row.technician_id ? [{
-                id: row.technician_id,
+                id: row.jt_id,
+                technician_id: row.technician_id,
+                job_id: row.job_id,
                 departureLocation: row.departureLocation,
                 dispatchTime: row.dispatchTime,
                 eta: row.eta,
-                job_id: row.job_id,
                 driver: row.driver,
                 status: row.jt_status,
-                messageId: row.messageId,
-                description: row.jt_description,
-                chat_id: row.jt_chat_id,
                 created_at: row.jt_created_at,
-                updated_at: row.jt_updated_at
+                updated_at: row.jt_updated_at,
+                chat_id: row.jt_chat_id,
+                messageId: row.messageId,
+                description: row.jt_description
               }] : []
             });
           }
