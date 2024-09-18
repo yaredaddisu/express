@@ -13,7 +13,7 @@ import OrderSlug from './views/OrderSlug.jsx';
 import Orders from './views/orders.jsx';
 import Jobs from './views/Jobs.jsx';
 import JobDetails from './views/JobDetails.jsx';
-import AutoLogin from './views/autoLogin.jsx';
+import AutoLogin from './views/AutoLogin.jsx';
 import UserDetails from './views/UserDetails.jsx';
 import Profile from './views/Profile.jsx';
 import Dashboard from './views/Dashboard.jsx';

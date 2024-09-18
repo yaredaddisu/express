@@ -174,18 +174,32 @@ const RegistrationForm = ({ userData, onClose, getUsers }) => {
       })
       .catch((err) => {
         setLoading(false); // Stop loading indicator
-    
+     
         const response = err.response;
+        console.log(response)
         if (response) {
-          if (response.status === 422) {
-            // Validation error, typically for form validation issues
-            setErrors(response.data.errors); // Display validation errors
-            toast.error("Validation failed. Please check the form.");
-          } else {
+          if(response.status === 500){
+            toast.error(response.data.message  ); 
+          }
+          if (response.status) {
+            const errors = response.data.errors;
+       
+            // Iterate over each field in the errors object
+            Object.keys(errors).forEach((field) => {
+            
+              toast.error(errors[field]);
+               
+            });
+          toast.error("Validation failed. Please check the form.");
+          }
+   
+          else {
             // Display the actual error message from the server
             toast.error(response.data.message || "An error occurred. Please try again."); 
           }
-        } else {
+        } 
+        
+        else {
           // Handle the case where the error response does not exist (network issues, etc.)
           toast.error("Network error. Please try again.");
         }
@@ -258,7 +272,7 @@ const RegistrationForm = ({ userData, onClose, getUsers }) => {
         placeholder="Password"
         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500" />
       <input
-        type="text"
+        type="number"
         name="chat_id"
         value={formData.chat_id}
         onChange={handleChange}
