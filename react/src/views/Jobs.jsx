@@ -64,7 +64,9 @@ export default function Users() {
       job.Reference.toLowerCase().includes(search.toLowerCase()) ||
       job.title.toLowerCase().includes(search.toLowerCase()) ||
       job.description.toLowerCase().includes(search.toLowerCase()) ||
-      job.company.toLowerCase().includes(search.toLowerCase())
+      job.company.toLowerCase().includes(search.toLowerCase()) ||
+      job.phone.toLowerCase().includes(search.toLowerCase())
+
   );
   
 
