@@ -134,6 +134,7 @@ export default function Users() {
                             <th>Title</th>
                             <th>Description</th>
                             <th>Company</th>
+                            <th>Phone</th>
                             <th>Location</th>
                             <th>Salary</th>
                             <th>Status</th>
@@ -148,6 +149,7 @@ export default function Users() {
                                 <td>{job.title}</td>
                                 <td>{job.description}</td>
                                 <td>{job.company}</td>
+                                <td>{job.phone}</td>
                                 <td>{job.location}</td>
                                 <td>ETB {job.salary}</td>
                                 <td>

@@ -55,7 +55,8 @@ const JobForm = ({ jobData, onClose, getJobs}) => {
     Reference: generateRef(),
     latitude: ' ',
     longitude: ' ',
-    selectedSkill:' '
+    selectedSkill:' ',
+    phone:' '
   });
 
   useEffect(() => {
@@ -74,6 +75,7 @@ const JobForm = ({ jobData, onClose, getJobs}) => {
         latitude:jobData.latitude || ' ',
 longitude:jobData.longitude || ' ',
 selectedSkill:jobData.selectedSkill || ' ',
+phone:jobData.phone || ' ',
 
       });
     }
@@ -222,36 +224,32 @@ selectedSkill:jobData.selectedSkill || ' ',
   
   
 
+ 
   const sendJobToTelegram = async (chatID, jobDetails, jobId) => {
-    console.log("jobDetails",jobDetails)
-      // Map URL using OpenStreetMap
-      const mapUrl = `https://www.openstreetmap.org/?mlat=${jobDetails.latitude}&mlon=${jobDetails.longitude}#map=13/${jobDetails.latitude}/${jobDetails.longitude}`;
- 
+    console.log("jobDetails", jobDetails);
   
-   
- const messageText = `
- <b>Job ID:</b> ${jobDetails.id}\n
- <b>Job Reference:</b> ${jobDetails.Reference}\n
- 
- <b>Title:</b> ${jobDetails.title}\n
- <b>Description:</b> ${jobDetails.description}\n
- <b>Company:</b> ${jobDetails.company}\n
- <b>Location:</b> ${jobDetails.location}\n
- <b>Status:</b> ${jobDetails.status === '1' ? 'In Progress 🟢' : 'Completed 🔵'}\n
+    // Map URL using OpenStreetMap
+    const mapUrl = `https://www.openstreetmap.org/?mlat=${jobDetails.latitude}&mlon=${jobDetails.longitude}#map=13/${jobDetails.latitude}/${jobDetails.longitude}`;
   
- <b>First Name:</b> ${selectedUser.firstName}\n
- <b>Last Name:</b> ${selectedUser.lastName}\n
- <b>Phone:</b> ${selectedUser.phone}\n
- <b>Email:</b> ${selectedUser.email}\n
- <b>Username:</b> @${selectedUser.username}\n
- 
- <b>Created At:</b> ${new Date(jobDetails.created_at).toLocaleString()}
- <b>Updated At:</b> ${new Date(jobDetails.updated_at).toLocaleString()}
-     `;
-
-        // Example of sending a message with an inline keyboard
-       
-    // Attach job ID to the callback data for each button
+    // Construct the message text
+    const messageText = `
+      <b>Job ID:</b> ${jobDetails.id}\n
+      <b>Job Reference:</b> ${jobDetails.Reference}\n
+      <b>Title:</b> ${jobDetails.title}\n
+      <b>Description:</b> ${jobDetails.description}\n
+      <b>Company:</b> ${jobDetails.company}\n
+      <b>Location:</b> ${jobDetails.location}\n
+      <b>Status:</b> ${jobDetails.status === '1' ? 'In Progress 🟢' : 'Completed 🔵'}\n
+      <b>First Name:</b> ${selectedUser.firstName}\n
+      <b>Last Name:</b> ${selectedUser.lastName}\n
+      <b>Phone:</b> ${selectedUser.phone}\n
+      <b>Email:</b> ${selectedUser.email}\n
+      <b>Username:</b> @${selectedUser.username}\n
+      <b>Created At:</b> ${new Date(jobDetails.created_at).toLocaleString()}\n
+      <b>Updated At:</b> ${new Date(jobDetails.updated_at).toLocaleString()}
+    `;
+  
+    // Inline keyboard configuration
     const inlineButtons = [
       [
         { text: 'Approve', callback_data: `approveJob_${jobId}_${selectedUser.id}_${user.id}` },
@@ -259,11 +257,11 @@ selectedSkill:jobData.selectedSkill || ' ',
       ],
       [
         { text: 'View Map', url: mapUrl }
-    ]
+      ]
     ];
-     
-
-    const token = '6685274704:AAFR-NXKCnfe7RZy9tGq5Swn2A0tDkTsrBU'; // Your bot token
+  
+    // Your bot token
+    const token = '6685274704:AAFR-NXKCnfe7RZy9tGq5Swn2A0tDkTsrBU';
   
     // Telegram message payload
     const telegramMessage = {
@@ -274,28 +272,52 @@ selectedSkill:jobData.selectedSkill || ' ',
         inline_keyboard: inlineButtons
       })
     };
+    const messageText2 = `
+<b>Job Reference:</b> ${jobDetails.Reference}\n
+<b>Title:</b> ${jobDetails.title}\n
+<b>Description:</b> ${jobDetails.description}\n
+<b>Company:</b> ${jobDetails.company}\n
+<b>Location:</b> ${jobDetails.location}\n
+<b>First Name:</b> ${selectedUser.firstName}\n
+<b>Last Name:</b> ${selectedUser.lastName}\n
+    
+<b>Created At:</b> ${new Date(jobDetails.created_at).toLocaleString()}\n
+<b>Updated At:</b> ${new Date(jobDetails.updated_at).toLocaleString()}\n\n
+    
+<b>About Us:</b>\n
+At our company, we specialize in a wide range of services including satellite dish installations 📡, electrical repairs ⚡, fridge repairs 🧊, washing machine setups 🧼, and much more. Our skilled technicians are here to provide top-notch service and ensure your appliances are running smoothly. We take pride in our work and are dedicated to offering the best solutions for your needs.\n\n
+በድርጅታችን ውስጥ ዲሽ ተከላ 📡፣ የኤሌክትሪክ ጥገና ⚡፣ የፍሪጅ ጥገና 🧊፣ የልብስ ማጠቢያ ማሽን 🧼 እና ሌሎችንም ጨምሮ ሰፊ አገልግሎቶችን እንሰጣለን። የእኛ የተካኑ ቴክኒሻኖች ከፍተኛ ደረጃ ያለው አገልግሎት ለመስጠት እና የእርስዎ እቃዎች ያለችግር መስራታቸውን ለማረጋገጥ እዚህ አሉ። በስራችን እንኮራለን እናም ለፍላጎትዎ ምርጥ መፍትሄዎችን ለማቅረብ ቆርጠን ተነስተናል።\n\n
+<b>Contact Us:</b>\n
+For inquiries or to schedule a service, please reach out to us via Telegram: @perfect_suilt 📩 or call us directly at 0923456789/0922114487 📞. We're here to assist you with all your appliance needs!\n\n
+ለጥያቄዎች ወይም አገልግሎት ቀጠሮ ለመያዝ እባክዎን በቴሌግራም ያግኙን: @perfect_suilt 📩 ወይም በቀጥታ በ 0923456789/0922114487 📞 ይደውሉልን. ሁሉንም ፍላጎቶችዎን ልንረዳዎ እዚህ መጥተናል!
+    `;
+    
   
     const channelMessage = {
       chat_id: '@lomiworks', // Replace with your channel's username
-      text: messageText,
+      text: messageText2,
       parse_mode: 'HTML', // Specify the parse mode to interpret HTML tags
-      reply_markup: JSON.stringify({
-        inline_keyboard: inlineButtons
-      })
     };
-  
+    const channelMessage2 = {
+      chat_id: '@jobsite123', // Replace with your channel's username
+      text: messageText2,
+      parse_mode: 'HTML', // Specify the parse mode to interpret HTML tags
+    };
     try {
       // Send to user
-      await axios.post(`https://api.telegram.org/bot${token}/sendMessage`, telegramMessage);
-      console.log('Message sent to Telegram user successfully');
+      const userResponse = await axios.post(`https://api.telegram.org/bot${token}/sendMessage`, telegramMessage);
+      console.log('Message sent to Telegram user successfully', userResponse.data);
   
-      // // Send to channel
-      // await axios.post(`https://api.telegram.org/bot${token}/sendMessage`, channelMessage);
-      // console.log('Message sent to Telegram channel successfully');
+      // Send to channel
+      const channelResponse = await axios.post(`https://api.telegram.org/bot${token}/sendMessage`, channelMessage);
+      const channelResponse2 = await axios.post(`https://api.telegram.org/bot${token}/sendMessage`, channelMessage2);
+
+      console.log('Message sent to Telegram channel successfully', channelResponse.data, channelResponse2.data);
     } catch (error) {
-      console.error('Failed to send message to Telegram:', error);
+      console.error('Failed to send message to Telegram:', error.response ? error.response.data : error.message);
     }
-};
+  };
+  
 
   return (
 <form onSubmit={handleSubmit} >
@@ -364,7 +386,16 @@ selectedSkill:jobData.selectedSkill || ' ',
           </option>
         ))}
       </select>
+      
     </div>
+    <input 
+    type="number"  
+    name="phone" 
+    placeholder="Phone Number" 
+    value={job.phone} 
+    onChange={handleChange} 
+    className="w-full px-3 py-2 border border-gray-300 rounded-md mt-3"
+  />
   {jobData.id && (
     
     <select
@@ -381,7 +412,13 @@ selectedSkill:jobData.selectedSkill || ' ',
   
   {users && (
     <div className="col-span-2">
-      <label htmlFor="userSelect" className="block text-gray-700">User:</label>
+<label htmlFor="userSelect" className="block text-gray-700">
+  Found 
+  <span className="ml-1 px-2 py-1 text-sm font-medium text-white bg-blue-500 rounded-full">
+    {users.length}
+  </span>
+  User/s:
+</label>
       <select
         id="userSelect"
         onChange={handleSelectChange}
@@ -398,6 +435,52 @@ selectedSkill:jobData.selectedSkill || ' ',
     </div>
   )}
   </div>
+  {selectedUser && users.length && (
+  <div className="mt-4 p-6 bg-white m-4 rounded-lg shadow-md">
+    <h3 className="text-xl font-bold text-gray-800 mb-4">Selected User Details</h3>
+    <div className="space-y-2">
+      <div className="flex items-center">
+        <span className="font-medium text-gray-600 w-1/3">User ID:</span>
+        <span className="text-gray-800">{selectedUser.id}</span>
+      </div>
+      <div className="flex items-center">
+        <span className="font-medium text-gray-600 w-1/3">Full Name:</span>
+        <span className="text-gray-800">{selectedUser.firstName} {selectedUser.lastName}</span>
+      </div>
+      <div className="flex items-center">
+        <span className="font-medium text-gray-600 w-1/3">Phone:</span>
+        <span className="text-gray-800">{selectedUser.phone}</span>
+      </div>
+      <div className="flex items-center">
+        <span className="font-medium text-gray-600 w-1/3">Username:</span>
+        <a
+          href={`https://t.me/${selectedUser.username}`}
+          className="text-blue-500 hover:underline"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          @{selectedUser.username}
+        </a>
+      </div>
+      <div className="flex items-center">
+        <span className="font-medium text-gray-600 w-1/3">Chat ID:</span>
+        <span className="text-gray-800">{selectedUser.chat_id}</span>
+      </div>
+      <div className="flex items-center">
+        <span className="font-medium text-gray-600 w-1/3">Email:</span>
+        <span className="text-gray-800">{selectedUser.email}</span>
+      </div>
+      <div className="flex items-center">
+        <span className="font-medium text-gray-600 w-1/3">Role:</span>
+        <span className="text-gray-800">
+  {selectedUser.role === "3" ? "Technician" : " "}
+</span>
+      </div>
+    </div>
+  </div>
+)}
+
+
   <textarea 
   className='mb-4'
         name="description" 

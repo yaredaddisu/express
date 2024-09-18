@@ -18,7 +18,8 @@ const checkTechnicianExists = async (technician_id) => {
       user_id,
       status,
       technician_id,
-      title
+      title,
+      phone
     } = jobData;
   
     // Validation
@@ -64,8 +65,9 @@ const checkTechnicianExists = async (technician_id) => {
         user_id, 
         status, 
         technician_id, 
-        title
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        title,
+        phone
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?)
     `;
   
     try {
@@ -84,7 +86,8 @@ const checkTechnicianExists = async (technician_id) => {
         user_id,
         status,
         technician_id,
-        title
+        title,
+        phone
       ]);
   
       const jobId = result.insertId;
@@ -165,7 +168,8 @@ const checkTechnicianExists = async (technician_id) => {
       user_id = null,
       status = null,
       technician_id = null,
-      title = null
+      title = null,
+      phone,
     } = jobData;
   
     // Check if technician exists
@@ -186,7 +190,8 @@ const checkTechnicianExists = async (technician_id) => {
         user_id = ?,
         status = ?,
         technician_id = ?,
-        title = ?
+        title = ?,
+        phone,
       WHERE id = ?
     `;
   
@@ -206,6 +211,7 @@ const checkTechnicianExists = async (technician_id) => {
         status,
         technician_id,
         title,
+        phone,
         jobId
       ]);
   
