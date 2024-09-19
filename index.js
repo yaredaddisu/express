@@ -566,12 +566,113 @@ app.post('/api/send-sms', async (req, res) => {
     res.status(500).json({ success: false, message: 'Failed to send SMS', error });
   }
 });
- 
- 
+
+
+
 const axios = require('axios');
 const multer = require('multer');
 const FormData = require('form-data');
-const path = require('path');
+
+const upload = multer();
+
+app.post('/api/postToFacebook', upload.array('images', 5), async (req, res) => {
+  const { message } = req.body;
+  const images = req.files; // Images uploaded by user
+  const pageAccessToken = 'EAAF1pWMJ19YBO7axqg9PfQSFC69kSZA8eHHaFXBen4q4pibZB1DHEBi6pNYspCuZAVON1ZBv3joFXgwBTOwBsIl9ScDk9kHE4Coty3IpN7vFZCD6RQlMN0GmkqDcos2dFQY8YWEJZAt386BZCxY4bwvnkXvdDmg8z8j8CpwwlCQJ1t2a4vMA5XKx1sN1g5vu6AZD';
+  const pageId = '107493672373057';
+
+  const telegramBotToken = '6685274704:AAFR-NXKCnfe7RZy9tGq5Swn2A0tDkTsrBU'; // Your bot token
+  const telegramChatId = '@lomiworks';
+  const telegramChatId2 = '@jobsite123';
+
+  try {
+    // Post images to Facebook
+    const uploadedImages = await Promise.all(images.map(async (image) => {
+      const formData = new FormData();
+      formData.append('source', image.buffer, {
+        filename: image.originalname,
+        contentType: image.mimetype,
+      });
+      formData.append('published', 'false'); // Do not publish yet
+      formData.append('access_token', pageAccessToken);
+
+      const response = await axios.post(`https://graph.facebook.com/v14.0/${pageId}/photos`, formData, {
+        headers: formData.getHeaders()
+      });
+
+      return response.data.id; // Facebook image ID (media_fbid)
+    }));
+
+    // Post message with images to Facebook
+    const mediaAttachments = uploadedImages.map((id) => ({ media_fbid: id }));
+    const postResponse = await axios.post(`https://graph.facebook.com/v14.0/${pageId}/feed`, {
+      message,
+      attached_media: mediaAttachments,
+      access_token: pageAccessToken
+    });
+
+    // Prepare media for Telegram
+    const telegramMedia = images.map((image, index) => ({
+      type: 'photo',
+      media: `attach://${image.originalname}`,
+      caption: index === 0 ? message : '', // Add the caption to the first image only
+    }));
+
+    // Create FormData for Telegram request
+    const telegramFormData = new FormData();
+    telegramFormData.append('chat_id', telegramChatId);
+    telegramFormData.append('media', JSON.stringify(telegramMedia));
+
+    const telegramFormData2 = new FormData();
+    telegramFormData2.append('chat_id', telegramChatId2);
+    telegramFormData2.append('media', JSON.stringify(telegramMedia));
+
+    // Attach each file
+    images.forEach((image) => {
+      telegramFormData.append(image.originalname, image.buffer, {
+        filename: image.originalname,
+        contentType: image.mimetype,
+      });
+    });
+   images.forEach((image) => {
+      telegramFormData2.append(image.originalname, image.buffer, {
+        filename: image.originalname,
+        contentType: image.mimetype,
+      });
+    });
+    // Send the media group to Telegram
+    const telegramResponse = await axios.post(`https://api.telegram.org/bot${telegramBotToken}/sendMediaGroup`, telegramFormData, {
+      headers: telegramFormData.getHeaders(),
+    });
+
+      // Send the media group to Telegram
+      const telegramResponse2 = await axios.post(`https://api.telegram.org/bot${telegramBotToken}/sendMediaGroup`, telegramFormData2, {
+        headers: telegramFormData2.getHeaders(),
+      });
+
+    // Response handling
+    res.status(200).json({ 
+      facebookPostId: postResponse.data.id, 
+      telegramResult: telegramResponse.data,
+      telegramResult2: telegramResponse2.data  // Add the result from Telegram chat 2 as well for comparison
+    });
+    
+  } catch (error) {
+    console.error('Error posting to Facebook or Telegram:', error.response ? error.response.data : error.message);
+    res.status(500).json({ error: 'Failed to post message', details: error.response ? error.response.data : error.message });
+  }
+});
+
+ 
+
+ 
+ 
+
+ 
+// const axios = require('axios');
+// const multer = require('multer');
+// const FormData = require('form-data');
+// const path = require('path');
 
  
 // // Configure multer for file uploads
@@ -621,49 +722,49 @@ const path = require('path');
 
 
 // Configure multer for file uploads
-const upload = multer();
+// const upload = multer();
 
-app.post('/api/postToFacebook', upload.array('images', 5), async (req, res) => {
-  const { message } = req.body;
-  const images = req.files; // Images uploaded by user
-  const pageAccessToken = 'EAAF1pWMJ19YBO7axqg9PfQSFC69kSZA8eHHaFXBen4q4pibZB1DHEBi6pNYspCuZAVON1ZBv3joFXgwBTOwBsIl9ScDk9kHE4Coty3IpN7vFZCD6RQlMN0GmkqDcos2dFQY8YWEJZAt386BZCxY4bwvnkXvdDmg8z8j8CpwwlCQJ1t2a4vMA5XKx1sN1g5vu6AZD';
-  const pageId = '107493672373057';
+// app.post('/api/postToFacebook', upload.array('images', 5), async (req, res) => {
+//   const { message } = req.body;
+//   const images = req.files; // Images uploaded by user
+//   const pageAccessToken = 'EAAF1pWMJ19YBO7axqg9PfQSFC69kSZA8eHHaFXBen4q4pibZB1DHEBi6pNYspCuZAVON1ZBv3joFXgwBTOwBsIl9ScDk9kHE4Coty3IpN7vFZCD6RQlMN0GmkqDcos2dFQY8YWEJZAt386BZCxY4bwvnkXvdDmg8z8j8CpwwlCQJ1t2a4vMA5XKx1sN1g5vu6AZD';
+//   const pageId = '107493672373057';
 
-  try {
-    // Upload each image and get their media_fbid
-    const uploadedImages = await Promise.all(images.map(async (image) => {
-      const formData = new FormData();
-      formData.append('source', image.buffer, {
-        filename: image.originalname,
-        contentType: image.mimetype,
-      });
-      formData.append('published', 'false'); // Do not publish yet, only upload
-      formData.append('access_token', pageAccessToken);
+//   try {
+//     // Upload each image and get their media_fbid
+//     const uploadedImages = await Promise.all(images.map(async (image) => {
+//       const formData = new FormData();
+//       formData.append('source', image.buffer, {
+//         filename: image.originalname,
+//         contentType: image.mimetype,
+//       });
+//       formData.append('published', 'false'); // Do not publish yet, only upload
+//       formData.append('access_token', pageAccessToken);
 
-      const response = await axios.post(`https://graph.facebook.com/v14.0/${pageId}/photos`, formData, {
-        headers: formData.getHeaders()
-      });
+//       const response = await axios.post(`https://graph.facebook.com/v14.0/${pageId}/photos`, formData, {
+//         headers: formData.getHeaders()
+//       });
 
-      return response.data.id; // Facebook image ID (media_fbid)
-    }));
+//       return response.data.id; // Facebook image ID (media_fbid)
+//     }));
 
-    // Now, create a single post with multiple images attached
-    const mediaAttachments = uploadedImages.map((id) => ({
-      media_fbid: id
-    }));
+//     // Now, create a single post with multiple images attached
+//     const mediaAttachments = uploadedImages.map((id) => ({
+//       media_fbid: id
+//     }));
 
-    const postResponse = await axios.post(`https://graph.facebook.com/v14.0/${pageId}/feed`, {
-      message: message,
-      attached_media: mediaAttachments,
-      access_token: pageAccessToken
-    });
+//     const postResponse = await axios.post(`https://graph.facebook.com/v14.0/${pageId}/feed`, {
+//       message: message,
+//       attached_media: mediaAttachments,
+//       access_token: pageAccessToken
+//     });
 
-    res.status(200).json({ postId: postResponse.data.id });
-  } catch (error) {
-    console.error('Error posting to Facebook:', error.response ? error.response.data : error.message);
-    res.status(500).json({ error: 'Failed to post message', details: error.response ? error.response.data : error.message });
-  }
-});
+//     res.status(200).json({ postId: postResponse.data.id });
+//   } catch (error) {
+//     console.error('Error posting to Facebook:', error.response ? error.response.data : error.message);
+//     res.status(500).json({ error: 'Failed to post message', details: error.response ? error.response.data : error.message });
+//   }
+// });
 // {
 //   "access_token": "EAAF1pWMJ19YBO7axqg9PfQSFC69kSZA8eHHaFXBen4q4pibZB1DHEBi6pNYspCuZAVON1ZBv3joFXgwBTOwBsIl9ScDk9kHE4Coty3IpN7vFZCD6RQlMN0GmkqDcos2dFQY8YWEJZAt386BZCxY4bwvnkXvdDmg8z8j8CpwwlCQJ1t2a4vMA5XKx1sN1g5vu6AZD",
 //   "token_type": "bearer",
