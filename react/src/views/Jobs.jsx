@@ -59,15 +59,18 @@ export default function Users() {
     };
 
     // Pagination and search logic
-    const filteredJobs = jobs.filter((job) =>
-      job.id.toString().includes(search) || // Convert job.id to string for search
-      job.Reference.toLowerCase().includes(search.toLowerCase()) ||
-      job.title.toLowerCase().includes(search.toLowerCase()) ||
-      job.description.toLowerCase().includes(search.toLowerCase()) ||
-      job.company.toLowerCase().includes(search.toLowerCase()) ||
-      job.phone.toLowerCase().includes(search.toLowerCase())
-
-  );
+    const filteredJobs = jobs.filter((job) => {
+        const phone = job.phone ? job.phone.toString() : ""; // Handle null or undefined phone
+        return (
+          job.id.toString().includes(search) || // Convert job.id to string for search
+          job.Reference?.toLowerCase().includes(search.toLowerCase()) || // Optional chaining for null checks
+          job.title?.toLowerCase().includes(search.toLowerCase()) ||
+          job.description?.toLowerCase().includes(search.toLowerCase()) ||
+          job.company?.toLowerCase().includes(search.toLowerCase()) ||
+          phone.includes(search) // Phone handled separately
+        );
+      });
+      
   
 
     const numPages = Math.ceil(filteredJobs.length / pageSize);

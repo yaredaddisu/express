@@ -33,4 +33,15 @@ axiosClient.interceptors.response.use(
 );
 
 export default axiosClient;
- 
+// const accountSid = 'AC5ed978b8db2e28af325a73ef8766ab7b';
+// const authToken = '[AuthToken]';
+// const client = require('twilio')(accountSid, authToken);
+
+// client.messages
+//     .create({
+//         body: 'yared addisu',
+//         from: '+16196580085',
+//         to: '+2510923423589'
+//     })
+//     .then(message => console.log(message.sid))
+//     .done();

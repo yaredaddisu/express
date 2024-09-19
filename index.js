@@ -543,8 +543,164 @@ const calculateDistanceQuery = (latitude, longitude) => `
   
 // POST /api/jobs - Create a new job entry
  
+const twilio = require('twilio');
+
+// Initialize Twilio client with environment variables
+const client = new twilio(process.env.TWILIO_SID, process.env.TWILIO_AUTH_TOKEN);
+
+ 
+
+app.post('/api/send-sms', async (req, res) => {
+  const { phoneNumber, message } = req.body;
+  console.log(process.env.TWILIO_PHONE_NUMBER)
+  try {
+    // Send SMS using Twilio
+    const sms = await client.messages.create({
+      body: message,
+      from: process.env.TWILIO_PHONE_NUMBER,
+      to: phoneNumber
+    });
+    
+    res.status(200).json({ success: true, sms });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Failed to send SMS', error });
+  }
+});
+ 
+ 
+const axios = require('axios');
+const multer = require('multer');
+const FormData = require('form-data');
+const path = require('path');
+
+ 
+// // Configure multer for file uploads
+// const upload = multer();
+
+// app.post('/api/postToFacebook', upload.array('images', 5), async (req, res) => {
+//   const { message } = req.body;
+//   const images = req.files; // Files uploaded by user
+//   const pageAccessToken = 'EAAF1pWMJ19YBO8axx4evFZA3XywqF26xiYrsEYZCqWr4450qeZBNo6rw9xPXPWjuQMkcVwJCOADyOsHuv4SR9n4iLZCQ1MC8AjDAS30hudcmE6j5ZCELngvqo81de7nWFAjYCIldL10Cptg2uZC1sFOlaSjaFN3rZAuKeFB2hLyTyZCNGKz9QWZAakz0gWAZBN6MW0Hk1MXEnPmbF3GEvck2c6HE0ZD';
+//   const pageId = '107493672373057';
+
+//   try {
+//     // Upload each image first
+//     const uploadedImages = await Promise.all(images.map(async (image) => {
+//       const formData = new FormData();
+//       formData.append('source', image.buffer, {
+//         filename: image.originalname,
+//         contentType: image.mimetype,
+//       });
+//       formData.append('access_token', pageAccessToken);
+
+//       const response = await axios.post(`https://graph.facebook.com/v14.0/${pageId}/photos`, formData, {
+//         headers: {
+//           ...formData.getHeaders()
+//         }
+//       });
+
+//       return response.data.id; // Returns Facebook image ID
+//     }));
+
+//     // Create a post with uploaded images
+//     const photoIds = uploadedImages.map(id => `fbid=${id}`).join('&');
+//     const postMessage = `${message}\n\n${photoIds}`;
+
+//     const postResponse = await axios.post(`https://graph.facebook.com/v14.0/${pageId}/feed`, {
+//       message: message,
+//       attached_media: uploadedImages.map(id => ({ media_fbid: id })),
+//       access_token: pageAccessToken
+//     });
+
+//     res.status(200).json({ postId: postResponse.data.id });
+//   } catch (error) {
+//     console.error('Error posting to Facebook:', error.response ? error.response.data : error.message);
+//     res.status(500).json({ error: 'Failed to post message', details: error.response ? error.response.data : error.message });
+//   }
+// });
+
+
+// Configure multer for file uploads
+const upload = multer();
+
+app.post('/api/postToFacebook', upload.array('images', 5), async (req, res) => {
+  const { message } = req.body;
+  const images = req.files; // Images uploaded by user
+  const pageAccessToken = 'EAAF1pWMJ19YBO7axqg9PfQSFC69kSZA8eHHaFXBen4q4pibZB1DHEBi6pNYspCuZAVON1ZBv3joFXgwBTOwBsIl9ScDk9kHE4Coty3IpN7vFZCD6RQlMN0GmkqDcos2dFQY8YWEJZAt386BZCxY4bwvnkXvdDmg8z8j8CpwwlCQJ1t2a4vMA5XKx1sN1g5vu6AZD';
+  const pageId = '107493672373057';
+
+  try {
+    // Upload each image and get their media_fbid
+    const uploadedImages = await Promise.all(images.map(async (image) => {
+      const formData = new FormData();
+      formData.append('source', image.buffer, {
+        filename: image.originalname,
+        contentType: image.mimetype,
+      });
+      formData.append('published', 'false'); // Do not publish yet, only upload
+      formData.append('access_token', pageAccessToken);
+
+      const response = await axios.post(`https://graph.facebook.com/v14.0/${pageId}/photos`, formData, {
+        headers: formData.getHeaders()
+      });
+
+      return response.data.id; // Facebook image ID (media_fbid)
+    }));
+
+    // Now, create a single post with multiple images attached
+    const mediaAttachments = uploadedImages.map((id) => ({
+      media_fbid: id
+    }));
+
+    const postResponse = await axios.post(`https://graph.facebook.com/v14.0/${pageId}/feed`, {
+      message: message,
+      attached_media: mediaAttachments,
+      access_token: pageAccessToken
+    });
+
+    res.status(200).json({ postId: postResponse.data.id });
+  } catch (error) {
+    console.error('Error posting to Facebook:', error.response ? error.response.data : error.message);
+    res.status(500).json({ error: 'Failed to post message', details: error.response ? error.response.data : error.message });
+  }
+});
+// {
+//   "access_token": "EAAF1pWMJ19YBO7axqg9PfQSFC69kSZA8eHHaFXBen4q4pibZB1DHEBi6pNYspCuZAVON1ZBv3joFXgwBTOwBsIl9ScDk9kHE4Coty3IpN7vFZCD6RQlMN0GmkqDcos2dFQY8YWEJZAt386BZCxY4bwvnkXvdDmg8z8j8CpwwlCQJ1t2a4vMA5XKx1sN1g5vu6AZD",
+//   "token_type": "bearer",
+//   "expires_in": 5124293
+// }
+
+  //GET https://graph.facebook.com/v14.0/me/accounts?access_token=LONG_LIVED_USER_ACCESS_TOKEN
+  // GET https://graph.facebook.com/v14.0/oauth/access_token?  
+  // grant_type=fb_exchange_token&  
+  // client_id=410828168353750&  
+  // client_secret=f52c5613bdf9b3691316856bf1674926&  
+  // fb_exchange_token=EAAF1pWMJ19YBO7WyRvNZA0k9J2h63ywS7X3j4sARZBZCu08xogsw9rE2PeDl8wl3CPpyKchjnnLrC585bgw50arShQu2Sx9VgExakLVBGZCH8RL16c4Uo1w00ZAy4O8DiMWQIUGM96gM1YK31ZApRd2KjiB7nYY0QIkja2GbnvuwDSQr5wm9ZCO0Irwt55tjfahHnZAK2scUXxSAEhP4Rq5MZApQZD
+  
+const getPageId = async () => {
+  const pageAccessToken = 'EAAF1pWMJ19YBO8axx4evFZA3XywqF26xiYrsEYZCqWr4450qeZBNo6rw9xPXPWjuQMkcVwJCOADyOsHuv4SR9n4iLZCQ1MC8AjDAS30hudcmE6j5ZCELngvqo81de7nWFAjYCIldL10Cptg2uZC1sFOlaSjaFN3rZAuKeFB2hLyTyZCNGKz9QWZAakz0gWAZBN6MW0Hk1MXEnPmbF3GEvck2c6HE0ZD';
+  const pageId = '107493672373057';
+  const apiUrl = `https://graph.facebook.com/v14.0/${pageId}/feed`;
+  
+  const message = 'Hello, this is a post from Node.js to my Facebook page!';
+  
+  axios.post(apiUrl, {
+    message: message,
+    access_token: pageAccessToken
+  })
+    .then(response => {
+      console.log('Post ID:', response.data.id);
+    })
+    .catch(error => {
+      console.error('Error posting to Facebook:', error.response.data);
+    });
+};
+
+// getPageId();
+
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
+//7Z414ZXU5FMY5V6ENZ9ESQ7A recovery code

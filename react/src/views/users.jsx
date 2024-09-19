@@ -6,6 +6,8 @@ import RegistrationForm from "../Components/RegistrationForm ";
 import LoadingSpinner from "../Components/LoadingSpiner";
 import { useNavigate } from 'react-router-dom';
 import { toast } from "react-toastify";
+import SendMessage from "../Components/SendMessage";
+import UserProfile from "../Components/UserProfile";
 
 
 export default function Users() {
@@ -15,6 +17,7 @@ export default function Users() {
   const [search, setSearch] = useState('');
   const [pageSize, setPageSize] = useState(10); // Default page size
   const [currentPage, setCurrentPage] = useState(1); // Track current page
+  const [chatId, setChatId] = useState('');
 
   
      const navigate = useNavigate();
@@ -60,6 +63,8 @@ export default function Users() {
         setLoading(false);
       });
   };
+  const [isModalOpenMessage, setIsModalOpenMessage] = useState(false);
+  const [isModalOpenImage, setIsModalOpenImage] = useState(false);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const handleCloseModal = () => {
@@ -74,30 +79,57 @@ export default function Users() {
     navigate(`/users-registration/${userId}`);
 
   };
+  const sendMessage = (chatId) => {
+    setIsModalOpenMessage(true);
+    setChatId(chatId);
+  };
+ const postImage = ( ) => {
+    setIsModalOpenImage(true);
+   
+  };
+  const closeModalModel = () => {
+    setIsModalOpenMessage(false);
+  };
+  const closeModalModelImage = () => {
+    setIsModalOpenImage(false);
+  };
   
   const openMo = (userData) =>{
     setIsModalOpen(true);
     setUser([ ]);
   }
   const closeModal = () => setIsModalOpen(false);
-
+ 
   // Pagination
-
-    // Pagination and search logic
-    const totalUsers = users.filter((user) =>
+  const totalUsers = users.filter((user) => {
+    const phone = user.phone ? user.phone.toString() : ""; // Handle null or undefined phone
+    return (
       user.id.toString().includes(search) || // Convert job.id to string for search
-    user.firstName.toLowerCase().includes(search.toLowerCase()) || 
-    user.lastName.toLowerCase().includes(search.toLowerCase()) ||
-    user.email.toLowerCase().includes(search.toLowerCase())
-  );
+      user.firstName.toLowerCase().includes(search.toLowerCase()) || 
+      user.email.toLowerCase().includes(search.toLowerCase()) ||
+      user.chat_id.includes(search) ||
+      user.lastName.toLowerCase().includes(search.toLowerCase()) ||
+      user.phone.includes(search) // Phone handled separately
+    );
+  });
+    // Pagination and search logic
+ 
   
   const totalPages = Math.ceil(totalUsers / pageSize);
 
   const paginatedUsers = users
     .filter((user) =>
-      user.firstName.toLowerCase().includes(search.toLowerCase()) || 
-      user.lastName.toLowerCase().includes(search.toLowerCase()) ||
-      user.email.toLowerCase().includes(search.toLowerCase())
+     {
+      const phone = user.phone ? user.phone.toString() : ""; // Handle null or undefined phone
+      return (
+        user.id.toString().includes(search) || // Convert job.id to string for search
+        user.firstName.toLowerCase().includes(search.toLowerCase()) || 
+        user.email.toLowerCase().includes(search.toLowerCase()) ||
+        user.chat_id.includes(search) ||
+        user.lastName.toLowerCase().includes(search.toLowerCase()) ||
+        user.phone.includes(search) // Phone handled separately
+      );
+     }
     )
     .slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
@@ -105,12 +137,24 @@ export default function Users() {
     if (page < 1 || page > totalPages) return;
     setCurrentPage(page);
   };
-
+ 
   return (
     <div className="container mx-auto p-4">
-  
+ 
+  {isModalOpenImage && (
+        <Modal isOpen={isModalOpenImage} onClose={closeModalModelImage}>
+   
+          <UserProfile onClose={closeModalModelImage}/>
+        </Modal>
+      )}
+
+
     <div>
-     
+    {isModalOpenMessage && (
+        <Modal isOpen={isModalOpenMessage} onClose={closeModalModel}>
+          <SendMessage chatId={chatId} onClose={closeModalModel} />
+        </Modal>
+      )}
       <div>
        
         <Modal isOpen={isModalOpen} onClose={closeModal}>
@@ -144,6 +188,13 @@ export default function Users() {
         >
           Add User
         </button>
+        <button
+    className="bg-green-500 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
+    onClick={() => postImage()}
+  >
+    Post 
+  </button>
+
     {/* Search Input on the Right */}
     <div className="flex items-center">
       <input
@@ -162,7 +213,7 @@ export default function Users() {
   
 
         <div className="overflow-x-auto">
-          <table className="min-w-full bg-white border border-gray-200">
+          <table >
             <thead>
               <tr>
                 <th className="px-4 py-2 border">ID</th>
@@ -201,26 +252,52 @@ export default function Users() {
                     <td className="px-4 py-2 border">
                       {user.role === '1' ? 'Admin' : user.role === '2' ? 'Finance' : 'Technician'}
                     </td>
-                    <td
-                      className={`px-4 py-2 border ${
-                        user.status === '1' ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
-                      }`}
-                    >
-                      {user.status === '1' ? 'Active' : 'Inactive'}
-                    </td>
-                    <td
-                      className={`px-4 py-2 border ${
-                        user.availability === '1' ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
-                      }`}
-                    >
-                      {user.availability === '1' ? 'Available' : 'Not Available'}
-                    </td>
-                    <td>
-                    <button className="btn-edit" onClick={() => viewHandle(user.id)}>View</button>
+                     <td
+  className={`px-4 py-2 border ${
+    user.status === '1' ? 'text-green-500  ' : 'text-red-500  '
+  }`}
+>
+  {user.status === '1' ? 'Active' : 'Inactive'}
+</td>
+<td
+  className={`px-4 py-2 border ${
+    user.availability === '1' ? 'text-green-500  ' : 'text-red-500  '
+  }`}
+>
+  {user.availability === '1' ? 'Available' : 'Not Available'}
+</td>
 
-                      <button className="btn-edit" onClick={() => editUser(user)}>Edit</button>
-                      &nbsp;
-                      <button className="btn-delete" onClick={() => onDeleteClick(user)}>Delete</button>
+                    <td>
+             
+<div className="space-x-2">
+<button 
+  className="bg-blue-500 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
+  onClick={() => sendMessage(user.chat_id)}
+>
+  Send
+</button>
+  <button
+    className="bg-gray-500 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
+    onClick={() => viewHandle(user.id)}
+  >
+    View
+  </button>
+
+  <button
+    className="bg-green-500 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
+    onClick={() => editUser(user)}
+  >
+    Edit
+  </button>
+
+  <button
+    className="bg-red-500 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
+    onClick={() => onDeleteClick(user)}
+  >
+    Delete
+  </button>
+</div>
+
                     </td>
                   </tr>
                 ))}
