@@ -8,6 +8,7 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from "react-toastify";
 import SendMessage from "../Components/SendMessage";
 import UserProfile from "../Components/UserProfile";
+import TikTokImage from "../Components/TikTokImage";
 
 
 export default function Users() {
@@ -65,7 +66,9 @@ export default function Users() {
   };
   const [isModalOpenMessage, setIsModalOpenMessage] = useState(false);
   const [isModalOpenImage, setIsModalOpenImage] = useState(false);
+  const [isModalOpenTiktok, setIsModalOpenTiktok] = useState(false);
 
+  
   const [isModalOpen, setIsModalOpen] = useState(false);
   const handleCloseModal = () => {
     getUsers();
@@ -87,8 +90,17 @@ export default function Users() {
     setIsModalOpenImage(true);
    
   };
+
   const closeModalModel = () => {
     setIsModalOpenMessage(false);
+  };
+  const postImageTiktok = ( ) => {
+    setIsModalOpenTiktok(true);
+   
+  };
+
+  const closeModalModelTiktok = () => {
+    setIsModalOpenTiktok(false);
   };
   const closeModalModelImage = () => {
     setIsModalOpenImage(false);
@@ -148,6 +160,15 @@ export default function Users() {
         </Modal>
       )}
 
+  {isModalOpenTiktok && (
+        <Modal isOpen={isModalOpenTiktok} onClose={closeModalModelTiktok}>
+   
+          <TikTokImage onClose={closeModalModelTiktok}/>
+        </Modal>
+      )}
+
+
+ 
 
     <div>
     {isModalOpenMessage && (
@@ -194,7 +215,12 @@ export default function Users() {
   >
     Post 
   </button>
-
+       <button
+    className="bg-green-500 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50 transition duration-300 ease-in-out"
+    onClick={() => postImageTiktok()}
+  >
+    Post Tiktok
+  </button>
     {/* Search Input on the Right */}
     <div className="flex items-center">
       <input
