@@ -411,8 +411,40 @@ const UserProfile = () => {
           </label>
         </div>
 
-        {/* Submit Button with Loading Spinner */}
-        <button
+        {/* Image Upload Input */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Images</label>
+          <input
+            type="file"
+            multiple
+            accept="image/*"
+            onChange={handleImageChange}
+            className="mt-1 block w-full text-sm text-gray-900 border border-gray-300 rounded-md cursor-pointer"
+          />
+        </div>
+
+        {/* Image Previews */}
+        <div className="flex flex-wrap gap-4">
+          {images.map((image, index) => (
+            <div key={index} className="relative inline-block">
+              <img
+                src={image.url}
+                alt={`Preview ${index}`}
+                className="w-24 h-24 object-cover rounded-md shadow-sm"
+              />
+              <button
+                type="button"
+                onClick={() => removeImage(index)}
+                className="absolute top-0 right-0 bg-red-500 text-white p-1 rounded-full transform translate-x-1/2 -translate-y-1/2"
+              >
+                X
+              </button>
+            </div>
+          ))}
+        </div>
+
+             {/* Submit Button with Loading Spinner */}
+             <button
           type="submit"
           className={`w-full py-2 px-4 text-white font-semibold rounded-md shadow-sm transition-colors ${
             loading ? 'bg-gray-500 cursor-not-allowed' : 'bg-blue-500 hover:bg-blue-600'

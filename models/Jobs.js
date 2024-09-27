@@ -179,21 +179,22 @@ const checkTechnicianExists = async (technician_id) => {
     }
   
     const updateQuery = `
-      UPDATE jobs SET
-        chat_id = ?,
-        company = ?,
-        description = ?,
-        latitude = ?,
-        location = ?,
-        longitude = ?,
-        salary = ?,
-        user_id = ?,
-        status = ?,
-        technician_id = ?,
-        title = ?,
-        phone,
-      WHERE id = ?
-    `;
+    UPDATE jobs SET
+      chat_id = ?,
+      company = ?,
+      description = ?,
+      latitude = ?,
+      location = ?,
+      longitude = ?,
+      salary = ?,
+      user_id = ?,
+      status = ?,
+      technician_id = ?,
+      title = ?,
+      phone = ?
+    WHERE id = ?
+  `;
+  
   
     try {
       const connection = await pool.getConnection();
