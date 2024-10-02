@@ -9,7 +9,7 @@ import { toast } from "react-toastify";
 import SendMessage from "../Components/SendMessage";
 import UserProfile from "../Components/UserProfile";
 import TikTokImage from "../Components/TikTokImage";
-
+import axios from 'axios';
 
 export default function Users() {
   const [users, setUsers] = useState([]);
@@ -20,10 +20,32 @@ export default function Users() {
   const [currentPage, setCurrentPage] = useState(1); // Track current page
   const [chatId, setChatId] = useState('');
 
+
+  let config = {
+     method: 'get',
+     maxBodyLength: Infinity,
+     url: 'https://TrueWay-Geocoding-API.proxy-production.allthingsdev.co/GeocodingService/Geocode?address=505+Howard+St,+San+Francisco&country=&language=en&bounds=',
+     headers: { 
+        'Accept': 'application/json', 
+        'x-apihub-key': 'g7DEafBir9mibMmOzGFI4P2FMoGN37lWSjhP83qDDuXv8Scnss', 
+        'x-apihub-host': 'TrueWay-Geocoding-API.allthingsdev.co', 
+        'x-apihub-endpoint': '3183ccc1-6caa-4c2e-b4fb-42d7fe84947a'
+     }
+  };
+  
+
+  
   
      const navigate = useNavigate();
   useEffect(() => {
     getUsers();
+    axios.request(config)
+    .then((response) => {
+       console.log(JSON.stringify(response.data));
+    })
+    .catch((error) => {
+       console.log(error);
+    });
   }, []);
 
   const onDeleteClick = (user) => {

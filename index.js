@@ -748,86 +748,173 @@ app.post('/api/postToFacebook', upload.array('images', 5), async (req, res) => {
       }
     }
 
-    // Telegram posting logic
-    if (postToTelegram === 'true') {
-      const telegramMedia = images.map((image, index) => ({
-        type: 'photo',
-        media: `attach://${image.originalname}`,
-        caption: index === 0 ? message : '', // Add caption only to the first image
-      }));
+    // // Telegram posting logic
+    // if (postToTelegram === 'true') {
+    //   const telegramMedia = images.map((image, index) => ({
+    //     type: 'photo',
+    //     media: `attach://${image.originalname}`,
+    //     caption: index === 0 ? message : '', // Add caption only to the first image
+    //   }));
 
-      if (images.length === 0 && message) {
-        // Only text, post message to Telegram
-        telegramResult = await axios.post(`https://api.telegram.org/bot${telegramBotToken}/sendMessage`, {
-          chat_id: telegramChatId,
-          text: message,
-        });
-        telegramResult2 = await axios.post(`https://api.telegram.org/bot${telegramBotToken}/sendMessage`, {
-          chat_id: telegramChatId2,
-          text: message,
-        });
-      } else if (images.length > 0 && !message) {
-        // Only images, post images to Telegram
-        const telegramFormData = new FormData();
-        telegramFormData.append('chat_id', telegramChatId);
-        telegramFormData.append('media', JSON.stringify(telegramMedia));
+    //   if (images.length === 0 && message) {
+    //     // Only text, post message to Telegram
+    //     telegramResult = await axios.post(`https://api.telegram.org/bot${telegramBotToken}/sendMessage`, {
+    //       chat_id: telegramChatId,
+    //       text: message,
+    //     });
+    //     telegramResult2 = await axios.post(`https://api.telegram.org/bot${telegramBotToken}/sendMessage`, {
+    //       chat_id: telegramChatId2,
+    //       text: message,
+    //     });
+    //   } else if (images.length > 0 && !message) {
+    //     // Only images, post images to Telegram
+    //     const telegramFormData = new FormData();
+    //     telegramFormData.append('chat_id', telegramChatId);
+    //     telegramFormData.append('media', JSON.stringify(telegramMedia));
 
-        images.forEach((image) => {
-          telegramFormData.append(image.originalname, image.buffer, {
-            filename: image.originalname,
-            contentType: image.mimetype,
-          });
-        });
+    //     images.forEach((image) => {
+    //       telegramFormData.append(image.originalname, image.buffer, {
+    //         filename: image.originalname,
+    //         contentType: image.mimetype,
+    //       });
+    //     });
 
-        const telegramFormData2 = new FormData();
-        telegramFormData2.append('chat_id', telegramChatId2);
-        telegramFormData2.append('media', JSON.stringify(telegramMedia));
+    //     const telegramFormData2 = new FormData();
+    //     telegramFormData2.append('chat_id', telegramChatId2);
+    //     telegramFormData2.append('media', JSON.stringify(telegramMedia));
 
-        images.forEach((image) => {
-          telegramFormData2.append(image.originalname, image.buffer, {
-            filename: image.originalname,
-            contentType: image.mimetype,
-          });
-        });
+    //     images.forEach((image) => {
+    //       telegramFormData2.append(image.originalname, image.buffer, {
+    //         filename: image.originalname,
+    //         contentType: image.mimetype,
+    //       });
+    //     });
 
-        telegramResult = await axios.post(`https://api.telegram.org/bot${telegramBotToken}/sendMediaGroup`, telegramFormData, {
-          headers: telegramFormData.getHeaders(),
-        });
-        telegramResult2 = await axios.post(`https://api.telegram.org/bot${telegramBotToken}/sendMediaGroup`, telegramFormData2, {
-          headers: telegramFormData2.getHeaders(),
-        });
-      } else if (images.length > 0 && message) {
-        // Both message and images, post both to Telegram
-        const telegramFormData = new FormData();
-        telegramFormData.append('chat_id', telegramChatId);
-        telegramFormData.append('media', JSON.stringify(telegramMedia));
+    //     telegramResult = await axios.post(`https://api.telegram.org/bot${telegramBotToken}/sendMediaGroup`, telegramFormData, {
+    //       headers: telegramFormData.getHeaders(),
+    //     });
+    //     telegramResult2 = await axios.post(`https://api.telegram.org/bot${telegramBotToken}/sendMediaGroup`, telegramFormData2, {
+    //       headers: telegramFormData2.getHeaders(),
+    //     });
+    //   } else if (images.length > 0 && message) {
+    //     // Both message and images, post both to Telegram
+    //     const telegramFormData = new FormData();
+    //     telegramFormData.append('chat_id', telegramChatId);
+    //     telegramFormData.append('media', JSON.stringify(telegramMedia));
 
-        images.forEach((image) => {
-          telegramFormData.append(image.originalname, image.buffer, {
-            filename: image.originalname,
-            contentType: image.mimetype,
-          });
-        });
+    //     images.forEach((image) => {
+    //       telegramFormData.append(image.originalname, image.buffer, {
+    //         filename: image.originalname,
+    //         contentType: image.mimetype,
+    //       });
+    //     });
 
-        const telegramFormData2 = new FormData();
-        telegramFormData2.append('chat_id', telegramChatId2);
-        telegramFormData2.append('media', JSON.stringify(telegramMedia));
+    //     const telegramFormData2 = new FormData();
+    //     telegramFormData2.append('chat_id', telegramChatId2);
+    //     telegramFormData2.append('media', JSON.stringify(telegramMedia));
 
-        images.forEach((image) => {
-          telegramFormData2.append(image.originalname, image.buffer, {
-            filename: image.originalname,
-            contentType: image.mimetype,
-          });
-        });
+    //     images.forEach((image) => {
+    //       telegramFormData2.append(image.originalname, image.buffer, {
+    //         filename: image.originalname,
+    //         contentType: image.mimetype,
+    //       });
+    //     });
 
-        telegramResult = await axios.post(`https://api.telegram.org/bot${telegramBotToken}/sendMediaGroup`, telegramFormData, {
-          headers: telegramFormData.getHeaders(),
-        });
-        telegramResult2 = await axios.post(`https://api.telegram.org/bot${telegramBotToken}/sendMediaGroup`, telegramFormData2, {
-          headers: telegramFormData2.getHeaders(),
-        });
-      }
+    //     telegramResult = await axios.post(`https://api.telegram.org/bot${telegramBotToken}/sendMediaGroup`, telegramFormData, {
+    //       headers: telegramFormData.getHeaders(),
+    //     });
+    //     telegramResult2 = await axios.post(`https://api.telegram.org/bot${telegramBotToken}/sendMediaGroup`, telegramFormData2, {
+    //       headers: telegramFormData2.getHeaders(),
+    //     });
+    //   }
+    // }
+// Telegram posting logic
+if (postToTelegram === 'true') {
+  const telegramMedia = images.map((image, index) => {
+    let caption = index === 0 ? message : ''; // Add caption only to the first image
+    if (caption.length > 1024) {
+      caption = caption.substring(0, 1021) + '...'; // Trim caption to fit within 1024 characters
     }
+
+    return {
+      type: 'photo',
+      media: `attach://${image.originalname}`,
+      caption,
+    };
+  });
+
+  if (images.length === 0 && message) {
+    // Only text, post message to Telegram
+    telegramResult = await axios.post(`https://api.telegram.org/bot${telegramBotToken}/sendMessage`, {
+      chat_id: telegramChatId,
+      text: message.length > 4096 ? message.substring(0, 4093) + '...' : message, // Ensure message fits Telegram's text limit
+    });
+    telegramResult2 = await axios.post(`https://api.telegram.org/bot${telegramBotToken}/sendMessage`, {
+      chat_id: telegramChatId2,
+      text: message.length > 4096 ? message.substring(0, 4093) + '...' : message,
+    });
+  } else if (images.length > 0 && !message) {
+    // Only images, post images to Telegram
+    const telegramFormData = new FormData();
+    telegramFormData.append('chat_id', telegramChatId);
+    telegramFormData.append('media', JSON.stringify(telegramMedia));
+
+    images.forEach((image) => {
+      telegramFormData.append(image.originalname, image.buffer, {
+        filename: image.originalname,
+        contentType: image.mimetype,
+      });
+    });
+
+    const telegramFormData2 = new FormData();
+    telegramFormData2.append('chat_id', telegramChatId2);
+    telegramFormData2.append('media', JSON.stringify(telegramMedia));
+
+    images.forEach((image) => {
+      telegramFormData2.append(image.originalname, image.buffer, {
+        filename: image.originalname,
+        contentType: image.mimetype,
+      });
+    });
+
+    telegramResult = await axios.post(`https://api.telegram.org/bot${telegramBotToken}/sendMediaGroup`, telegramFormData, {
+      headers: telegramFormData.getHeaders(),
+    });
+    telegramResult2 = await axios.post(`https://api.telegram.org/bot${telegramBotToken}/sendMediaGroup`, telegramFormData2, {
+      headers: telegramFormData2.getHeaders(),
+    });
+  } else if (images.length > 0 && message) {
+    // Both message and images, post both to Telegram
+    const telegramFormData = new FormData();
+    telegramFormData.append('chat_id', telegramChatId);
+    telegramFormData.append('media', JSON.stringify(telegramMedia));
+
+    images.forEach((image) => {
+      telegramFormData.append(image.originalname, image.buffer, {
+        filename: image.originalname,
+        contentType: image.mimetype,
+      });
+    });
+
+    const telegramFormData2 = new FormData();
+    telegramFormData2.append('chat_id', telegramChatId2);
+    telegramFormData2.append('media', JSON.stringify(telegramMedia));
+
+    images.forEach((image) => {
+      telegramFormData2.append(image.originalname, image.buffer, {
+        filename: image.originalname,
+        contentType: image.mimetype,
+      });
+    });
+
+    telegramResult = await axios.post(`https://api.telegram.org/bot${telegramBotToken}/sendMediaGroup`, telegramFormData, {
+      headers: telegramFormData.getHeaders(),
+    });
+    telegramResult2 = await axios.post(`https://api.telegram.org/bot${telegramBotToken}/sendMediaGroup`, telegramFormData2, {
+      headers: telegramFormData2.getHeaders(),
+    });
+  }
+}
 
     // Respond with the post IDs/results from both platforms
     res.status(200).json({
