@@ -218,7 +218,7 @@ const DefaultLayout = ({userData}) => {
               <Link to="/profile" className="block py-2 px-4 text-gray-800 hover:bg-gray-200" onClick={toggleMobileMenu}>Profile</Link>
               <><Link to="/confirmed-tasks" className="block py-2 px-4 text-gray-800 hover:bg-gray-200" onClick={toggleMobileMenu}>Confirmed Jobs</Link>
                              <Link to="/completed-tasks" className="block py-2 px-4 text-gray-800 hover:bg-gray-200" onClick={toggleMobileMenu}>Completed Jobs</Link>
-                             <Link to="/canceld-tasks" className="block py-2 px-4 text-gray-800 hover:bg-gray-200" onClick={toggleMobileMenu}>Canceled Jobs</Link>
+                             <Link to="/canceld-tasks" className="block py-2 px-4 text-gray-800 hover:bg-gray-200" onClick={toggleMobileMenu}>Cancelled Jobs</Link>
                              <Link to="/tasks" className="block py-2 px-4 text-gray-800 hover:bg-gray-200" onClick={toggleMobileMenu}>Available Jobs</Link></>
               <button onClick={onLogout} className="w-full text-left py-2 px-4 text-red-500 hover:bg-red-100">Logout</button></>
             )}

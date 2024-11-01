@@ -516,7 +516,15 @@ const CompleteJob = async (taskId, status, userId, description, data) => {
         [data.technician_id]
     );
     const technician = technicianResult[0] || {};
-  
+    function formatTime(timeString) {
+      if (!timeString) return 'Pending';
+      const today = new Date().toISOString().split('T')[0]; // Get today's date in 'YYYY-MM-DD' format
+      const fullDateTime = `${today}T${timeString}`; // Combine date with time string
+      return new Date(fullDateTime).toLocaleString(); // Convert to localized date-time format
+    }
+    
+   
+ 
     // Build the message text
     const messageText = `
         🚀 <b>Job Confirmation</b>\n
@@ -530,8 +538,8 @@ const CompleteJob = async (taskId, status, userId, description, data) => {
         <b>Status:</b> ${data.status === '3' ? 'Completed 🔵' : 'In Progress 🟢'}\n
         📍 <b>Dispatch Information</b>\n
         <b>Departure:</b> ${data.departureLocation || 'Not specified'}\n
-        <b>Dispatch Time:</b> ${data.dispatchTime ? new Date(data.dispatchTime).toLocaleString() : 'Pending'}\n
-        <b>ETA:</b> ${data.eta ? new Date(data.eta).toLocaleString() : 'Pending'}\n
+        <b>Dispatch Time:</b> ${formatTime(data.dispatchTime)}\n
+        <b>ETA:</b> ${formatTime(data.eta)}\n 
         <b>Driver:</b> ${data.driver || 'Driver not assigned'}\n
         📞 <b>Technician Contact</b>\n
         <b>Phone:</b> ${technician.phone || 'No phone available'}\n
@@ -614,7 +622,12 @@ const CancelJob = async (taskId, status, userId, description, data) => {
       [data.technician_id]
   );
   const technician = technicianResult[0] || {};
-
+  function formatTime(timeString) {
+    if (!timeString) return 'Pending';
+    const today = new Date().toISOString().split('T')[0]; // Get today's date in 'YYYY-MM-DD' format
+    const fullDateTime = `${today}T${timeString}`; // Combine date with time string
+    return new Date(fullDateTime).toLocaleString(); // Convert to localized date-time format
+  }
   // Build the message text
   const messageText = `
       🚀 <b>Job Confirmation</b>\n
@@ -628,8 +641,8 @@ const CancelJob = async (taskId, status, userId, description, data) => {
       <b>Status:</b> ${data.status === '3' ? 'Completed 🔴' : 'In Progress 🟢'}\n
       📍 <b>Dispatch Information</b>\n
       <b>Departure:</b> ${data.departureLocation || 'Not specified'}\n
-      <b>Dispatch Time:</b> ${data.dispatchTime ? new Date(data.dispatchTime).toLocaleString() : 'Pending'}\n
-      <b>ETA:</b> ${data.eta ? new Date(data.eta).toLocaleString() : 'Pending'}\n
+      <b>Dispatch Time:</b> ${formatTime(data.dispatchTime)}\n
+      <b>ETA:</b> ${formatTime(data.eta)}\n 
       <b>Driver:</b> ${data.driver || 'Driver not assigned'}\n
       📞 <b>Technician Contact</b>\n
       <b>Phone:</b> ${technician.phone || 'No phone available'}\n
