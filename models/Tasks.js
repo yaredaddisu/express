@@ -229,8 +229,17 @@ const confirmJob = async (taskId, status, userId, departureLocation, dispatchTim
       );
 
       const jobTechDetail = jobTechnicianDetails[0];
-      console.log(jobTechDetail);
-
+     // console.log(jobTechDetail);
+      function formatTime(timeString) {
+        if (!timeString) return 'Pending';
+        const today = new Date().toISOString().split('T')[0]; // Get today's date in 'YYYY-MM-DD' format
+        const fullDateTime = `${today}T${timeString}`; // Combine date with time string
+        return new Date(fullDateTime).toLocaleString(); // Convert to localized date-time format
+      }
+      
+     
+    
+      
       // Step 4: Construct the detailed message text
       const messageText = `
       🚀 <b>Job Confirmation</b>\n
@@ -246,8 +255,8 @@ const confirmJob = async (taskId, status, userId, departureLocation, dispatchTim
       
       📍 <b>Dispatch Information</b>\n
       <b>Departure:</b> ${jobTechDetail.departureLocation || 'Not specified'}\n
-      <b>Dispatch Time:</b> ${jobTechDetail.dispatchTime ? new Date(jobTechDetail.dispatchTime).toLocaleString() : 'Pending'}\n
-      <b>ETA:</b> ${jobTechDetail.eta ? new Date(jobTechDetail.eta).toLocaleString() : 'Pending'}\n
+      <b>Dispatch Time:</b> ${formatTime(jobTechDetail.dispatchTime)}\n
+      <b>ETA:</b> ${formatTime(jobTechDetail.eta)}\n  
       <b>Driver:</b> ${jobTechDetail.driver || 'Driver not assigned'}\n
       
       📞 <b>Technician Contact</b>\n

@@ -3,8 +3,8 @@ import axios from "axios";
 const axiosClient = axios.create({
    //baseURL: "https://api.lomistock.com/api",
 //    baseURL: "https://api.express.com.lomistock.com/api",
-//baseURL: "http://127.0.0.1:30000/api",
-baseURL: "https://expressnode.vercel.app/api",
+baseURL: "http://127.0.0.1:30000/api",
+//baseURL: "https://expressnode.vercel.app/api",
 
 });
 
