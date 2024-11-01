@@ -21,8 +21,9 @@ export default function login(){
             password: passwordRef.current.value,
         }
         axiosClient.post("/login",payload).then(({data})=>{
-            // localStorage.setItem('token', response.data.token);
+             localStorage.setItem('token',  data.token);
             // localStorage.setItem('user', response.data.user);
+            console.log(data)
             localStorage.setItem('user', JSON.stringify(data.user)); // Store user data in localStorage
             // console.log(data.token);
             setUser(data);

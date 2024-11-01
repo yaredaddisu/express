@@ -42,7 +42,7 @@ router.post('/login', async (req, res) => {
     if (!isMatch) return res.status(400).json({ success: false, message: 'Invalid credentials' });
 
     // Generate token
-    const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET, { expiresIn: '1h' });
+    const token = jwt.sign({ userId: user.id, chatId: user.chat_id, user: user }, process.env.JWT_SECRET, { expiresIn: '1h' });
 
     // Send response with user details and token
     res.status(200).json({
@@ -63,6 +63,48 @@ router.post('/login', async (req, res) => {
     res.status(500).json({ success: false, message: err.message });
   }
 });
+
+
+
+router.post('/tech_login', async (req, res) => {
+  const { chat_id } = req.body;
+
+  try {
+    if (!chat_id) {
+      return res.status(400).json({ success: false, message: 'Email and chat_id are required' });
+    }
+
+    // Find user
+    const [rows] = await db.execute('SELECT * FROM users WHERE chat_id = ?', [chat_id]);
+    const user = rows[0];
+    if (!user) return res.status(400).json({ success: false, message: 'User not found' });
+
+    console.log(user)
+    // Generate token
+    const token = jwt.sign({ userId: user.id, chatId: user.chat_id, user: user }, process.env.JWT_SECRET, { expiresIn: '1h' });
+
+    // Send response with user details and token
+    res.status(200).json({
+      success: true,
+      token,
+    
+        id: user.id,
+        email: user.email,
+        username: user.username,
+        role: user.role,
+        firstName: user.firstName,
+        lastName: user.lastName ,
+        chat_id: user.chat_id,
+
+     
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+
+
 router.post('/signin', async (req, res) => {
   const { email, password } = req.body;
 
@@ -81,7 +123,7 @@ router.post('/signin', async (req, res) => {
     if (!isMatch) return res.status(400).json({ success: false, message: 'Invalid credentials' });
 
     // Generate token
-    const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET, { expiresIn: '1h' });
+    const token = jwt.sign({ userId: user.id, chatId: user.chat_id, user: user }, process.env.JWT_SECRET, { expiresIn: '1h' });
 
     // Send response with user details and token
     res.status(200).json({

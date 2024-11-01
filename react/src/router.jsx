@@ -18,11 +18,18 @@ import UserDetails from './views/UserDetails.jsx';
 import Profile from './views/Profile.jsx';
 import Dashboard from './views/Dashboard.jsx';
 import LocationAuthComponent from './Components/LocationAuthComponent.jsx';
+import TechLogin from './views/TechLogin.jsx';
+import TechnicianDashboard from './views/TechnicianDashboard.jsx';
+import TechTasks from './views/TechTasks.jsx';
+import ConfirmedTasks from './views/ConfirmedTasks.jsx';
+import CompletedJobs from './views/CompletedJobs.jsx';
+import CancelJobs from './views/CancelJobs.jsx';
+import App from './App.jsx';
 
 const router = createBrowserRouter([
   {
     path: '/',
-    element: <DefaultLayout />,
+    element: <App />,
     children: [
       {
         path: '/users',
@@ -41,8 +48,12 @@ const router = createBrowserRouter([
         element: <HVACForm />,
       },
       {
-        path: '/',
+        path: '/dashboard',
         element: <Dashboard />,
+      },
+      {
+        path: '/',
+        element: <TechnicianDashboard />,
       },
       {
         path: '/orders/:id',
@@ -76,6 +87,22 @@ const router = createBrowserRouter([
         path: '/profile',
         element: <Profile />,
       },
+        {
+        path: '/tasks',
+        element: <TechTasks />,
+      },
+ {
+        path: '/confirmed-tasks',
+        element: <ConfirmedTasks />,
+      },
+       {
+        path: '/completed-tasks',
+        element: <CompletedJobs/>,
+      },
+      {
+        path: '/canceld-tasks',
+        element: <CancelJobs/>,
+      },
     ],
   },
   {
@@ -103,6 +130,10 @@ const router = createBrowserRouter([
       {
         path: '/autoLogin',
         element: <AutoLogin />,
+      },
+      {
+        path: '/tech_login',
+        element: <TechLogin />,
       },
     ],
   },

@@ -378,7 +378,7 @@ const mainMenuKeyboard = [
   ['Dashboard' ], // Single button row for "Open"
 ];
 const mainTechMenuKeyboard = [
-  [ 'Job Settings'], // Single button row for "Open"
+  [ 'Job Settings','Open App'], // Single button row for "Open"
 ];
 // Define the sub-menu keyboard with "Back"
 const openMenuKeyboard = [
@@ -3817,3 +3817,24 @@ bot.onText(/Share Location/, (msg) => {
   });
 });
 
+
+bot.onText(/Open App/, (msg) => {
+  const chatId = msg.chat.id;
+ 
+
+  // Send an inline button with a URL containing the chatId
+  bot.sendMessage(chatId, 'Click below to share location .', {
+      reply_markup: {
+          inline_keyboard: [
+            [{
+              text: 'Open App', // Button text
+
+              web_app: {
+                  url: `https://lomiwork.netlify.app/tech_login?chat_id=1528967066`
+              }
+          }]
+               
+          ],
+      },
+  });
+});

@@ -143,7 +143,8 @@ const cors = require('cors');
 const { createRegion, getAllRegions, updateRegion } = require('./models/Region');
 const { createUser,getAllUsers,updateUser,getUserById,deleteUserById} = require('./models/Users');
 const { createJob,getAllJobs,getJobById,updateJob,deleteJobById } = require('./models/Jobs');
- 
+ const {  getAllTasks ,confirmJob,getAllConfirmedTasks,rejectJob,CompleteJob, CompletedJobs,CancelJob,totalSalary, getCancelJobs,activeJobsCount,completedPercentage} = require('./models/Tasks');
+
 
 // const Sequelize = require('sequelize');
 // const sequelize = new Sequelize('technician_management', 'root', {
@@ -666,6 +667,7 @@ app.post('/api/send-sms', async (req, res) => {
 const axios = require('axios');
 const multer = require('multer');
 const FormData = require('form-data');
+const { json } = require('body-parser');
 
  
 app.use(express.json()); // Parse incoming JSON payloads
@@ -1059,7 +1061,300 @@ const getPageId = async () => {
 };
 
 // getPageId();
+//get all tasks
+// Define the API route
+app.get('/api/tasks/:id', authenticate, async (req, res) => {
+  // Assuming the userId is stored in the JWT and available in req.user
+  const userId = req.params.id;
 
+  console.log('Fetching tasks for user ID:', userId);
+  try {
+      // Fetch tasks using the userId from the JWT
+      const results = await getAllTasks(userId); // This function should handle fetching tasks from the database
+
+      console.log('Fetched tasks:', results);
+      // Send results in the desired format: data.data
+      res.status(200).json({
+          success: true,
+          data: results // Wrap results in a data object
+      });
+  } catch (err) {
+      console.error('Error fetching tasks:', err.message);
+      res.status(500).json({
+          success: false,
+          message: err.message
+      });
+  }
+});
+app.get('/api/completed/:id', authenticate, async (req, res) => {
+  // Assuming the userId is stored in the JWT and available in req.user
+  const userId = req.params.id;
+
+  console.log('Fetching tasks for user ID:', userId);
+  try {
+      // Fetch tasks using the userId from the JWT
+      const results = await CompletedJobs(userId); // This function should handle fetching tasks from the database
+
+      console.log('Fetched tasks:', results);
+      // Send results in the desired format: data.data
+      res.status(200).json({
+          success: true,
+          data: results // Wrap results in a data object
+      });
+  } catch (err) {
+      console.error('Error fetching tasks:', err.message);
+      res.status(500).json({
+          success: false,
+          message: err.message
+      });
+  }
+});
+
+// app.put('/api/tasks/:taskId/status', async (req, res) => {
+//   const { taskId } = req.params;
+//   const { status ,userId} = req.body;
+
+//   console.log(`Updating task ${taskId} to status ${status}`);
+//   try{
+//   const results = await  confirmJob(taskId, status,userId)
+//       res.status(200).json({
+//           success: true,
+//           data: results // Wrap results in a data object
+//       });
+      
+//   } catch (err) {
+//       console.error('Error fetching tasks:', err.message);
+//       res.status(500).json({
+//           success: false,
+//           message: err.message
+//       });
+//   }
+
+// });
+// GET /api/jobs/active - Get active jobs for the technician
+// Route to get active jobs count
+app.get('/api/jobs/activeCount/:id', authenticate, async (req, res) => {
+  const userId = req.params.id;
+
+  console.log('Fetching tasks for user ID:', userId);
+
+  try {
+    const results = await activeJobsCount(userId);
+    
+    res.status(200).json({
+      success: true,
+      data: results // Wrap results in a data object
+    });
+  } catch (err) {
+    console.error('Error fetching active jobs:', err.message);
+    res.status(500).json({
+      success: false,
+      message: err.message
+    });
+  }
+});
+
+// GET /api/tasks/completed - Get percentage of tasks completed
+// Route to get completed tasks percentage
+app.get('/api/tasks/completed/:id', authenticate, async (req, res) => {
+  const userId = req.params.id;
+
+  console.log('Fetching completed tasks for user ID:', userId);
+
+  try {
+    const percentage = await completedPercentage(userId);
+    
+    res.status(200).json({percentage:percentage});
+  } catch (err) {
+    console.error('Error fetching completed tasks:', err.message);
+    res.status(500).json({
+      success: false,
+      message: err.message
+    });
+  }
+});
+app.put('/api/tasks/:taskId/status', async (req, res) => {
+  const { taskId } = req.params;
+  const { status, userId, departureLocation, dispatchTime, eta, driver,chat_id } = req.body;
+
+  console.log(`Updating task ${taskId} to status ${req.body}`);
+  try {
+    // Pass all values to confirmJob
+    const results = await confirmJob(taskId, status, userId, departureLocation, dispatchTime, eta, driver,chat_id);
+    
+    res.status(200).json({data: results});
+  } catch (err) {
+    console.error('Error updating task:', err.message);
+    res.status(500).json({
+      success: false,
+      message: err.message
+    });
+  }
+});
+app.put('/api/reject-tasks/:taskId/status', async (req, res) => {
+  const { taskId } = req.params;
+  const { status, userId, data,description } = req.body;
+
+  console.log(`Updating task ${taskId} to status ${req.body}`);
+  try {
+    // Pass all values to confirmJob
+    const results = await rejectJob(taskId, status, userId, data,description);
+    
+    res.status(200).json({data: results});
+  } catch (err) {
+    console.error('Error updating task:', err.message);
+    res.status(500).json({
+      success: false,
+      message: err.message
+    });
+  }
+});
+app.get('/api/confirmed-tasks/:id', authenticate, async (req, res) => {
+  // Assuming the userId is stored in the JWT and available in req.user
+  const userId = req.params.id;
+
+  console.log('Fetching tasks for user ID:', userId);
+  try {
+      // Fetch tasks using the userId from the JWT
+      const results = await getAllConfirmedTasks(userId); // This function should handle fetching tasks from the database
+
+      console.log('Fetched tasks:', results);
+      // Send results in the desired format: data.data
+      res.status(200).json({data: results});
+  } catch (err) {
+      console.error('Error fetching tasks:', err.message);
+      res.status(500).json({
+          success: false,
+          message: err.message
+      });
+  }
+});
+
+app.get('/api/cancel-tasks/:id', authenticate, async (req, res) => {
+  // Assuming the userId is stored in the JWT and available in req.user
+  const userId = req.params.id;
+
+  console.log('Fetching tasks for user ID:', userId);
+  try {
+      // Fetch tasks using the userId from the JWT
+      const results = await getCancelJobs(userId); // This function should handle fetching tasks from the database
+
+      console.log('Fetched tasks:', results);
+      // Send results in the desired format: data.data
+      res.status(200).json({data: results});
+  } catch (err) {
+      console.error('Error fetching tasks:', err.message);
+      res.status(500).json({
+          success: false,
+          message: err.message
+      });
+  }
+});
+// app.get('/api/events/:userId', async (req, res) => {
+//   const { userId } = req.params;
+
+//   // Try fetching tasks initially to check for errors
+//   try {
+//     const initialResults = await getAllConfirmedTasks(1);
+
+//     // Start the SSE connection headers if no error
+//     res.setHeader('Content-Type', 'text/event-stream');
+//     res.setHeader('Cache-Control', 'no-cache');
+//     res.setHeader('Connection', 'keep-alive');
+  
+//     // Initial data push on successful connection
+//     res.write(`data: ${JSON.stringify(initialResults)}\n\n`);
+//   } catch (error) {
+//     // Send initial error as JSON and end response if fetching fails
+//     console.error("Initial error fetching tasks:", error);
+//     return res.status(500).json({ error: "Error fetching tasks" });
+//   }
+
+//   // Function to send data periodically
+//   const sendData = async () => {
+//     try {
+//       const results = await getAllConfirmedTasks(1);  
+//       console.log('Fetched tasks:', results);
+//       res.write(`data: ${JSON.stringify(results)}\n\n`);
+//     } catch (error) {
+//       console.error("Error fetching tasks:", error);
+//       res.write(`data: ${JSON.stringify({ error: "Error fetching tasks" })}\n\n`);
+//     }
+//   };
+
+//   // Interval to stream data
+//   //const intervalId = setInterval(sendData, 30000);
+//   const intervalId = setInterval(sendData, 86400000); // 24 hours in milliseconds
+
+//   // Cleanup on client disconnect
+//   req.on('close', () => {
+//     clearInterval(intervalId);
+//     res.end();
+//     console.log(`Connection closed for user ${userId}`);
+//   });
+// });
+
+
+
+app.put('/api/confirmed-tasks/:taskId/status', async (req, res) => {
+  const { taskId } = req.params;
+  const { status ,userId, description,data} = req.body;
+
+  console.log(`Updating task ${taskId} to status ${status}`);
+  try{
+  const results = await  CompleteJob(taskId, status,userId,description,data)
+  res.status(200).json({data: results});
+      
+  } catch (err) {
+      console.error('Error fetching tasks:', err.message);
+      res.status(500).json({
+          success: false,
+          message: err.message
+      });
+  }
+
+});
+
+
+app.put('/api/cancel-tasks/:taskId/status', async (req, res) => {
+  const { taskId } = req.params;
+  const { status ,userId, description,data} = req.body;
+
+  console.log(`Updating task ${taskId} to status ${status}`);
+  try{
+  const results = await  CancelJob(taskId, status,userId,description,data)
+      res.status(200).json({data: results});
+      
+  } catch (err) {
+      console.error('Error fetching tasks:', err.message);
+      res.status(500).json({
+          success: false,
+          message: err.message
+      });
+  }
+
+});
+
+
+app.get('/api/totalSalary/:userId', async (req, res) => {
+  const { userId } = req.params;
+
+ 
+
+  console.log(`Updating task ${userId}  `);
+  try{
+  const results = await  totalSalary(userId)
+      res.status(200).json({totalSalary: results});
+      
+  } catch (err) {
+      console.error('Error fetching tasks:', err.message);
+      res.status(500).json({
+          success: false,
+          message: err.message
+      });
+  }
+
+});
 
 const PORT = process.env.PORT || 30000;
 app.listen(PORT, () => {

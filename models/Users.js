@@ -74,12 +74,17 @@ const createUser = async (users) => {
     }
   };
   
-async function updateUser(userId, updatedData) {
+  async function updateUser(userId, updatedData) {
     // Basic validation for required fields
     const errors = [];
     const skillsJson = JSON.stringify(updatedData.skills); // Convert skills array to JSON string
-    const hashedPassword = await bcrypt.hash(updatedData.password, 10);
-
+  
+    // Validate and hash password only if provided
+    let hashedPassword = null;
+    if (updatedData.password && updatedData.password.trim() !== "") {
+      hashedPassword = await bcrypt.hash(updatedData.password, 10);
+    }
+  
     if (!updatedData.firstName || updatedData.firstName.trim() === "") {
       errors.push("First name is required.");
     }
@@ -104,11 +109,13 @@ async function updateUser(userId, updatedData) {
       return { success: false, errors };
     }
   
-    // Proceed with the update if validation passes
-    try {
-      const [result] = await pool.execute(
-        'UPDATE users SET firstName = ?, lastName = ?, email = ?, phone = ?, status = ?, role = ?,availability = ?, skills = ?, password = ? WHERE id = ?',
-        [
+    // Prepare the SQL query based on whether the password should be updated
+    const query = hashedPassword
+      ? `UPDATE users SET firstName = ?, lastName = ?, email = ?, phone = ?, status = ?, role = ?, availability = ?, skills = ?, password = ? WHERE id = ?`
+      : `UPDATE users SET firstName = ?, lastName = ?, email = ?, phone = ?, status = ?, role = ?, availability = ?, skills = ? WHERE id = ?`;
+  
+    const values = hashedPassword
+      ? [
           updatedData.firstName,
           updatedData.lastName,
           updatedData.email,
@@ -118,22 +125,37 @@ async function updateUser(userId, updatedData) {
           updatedData.availability,
           skillsJson,
           hashedPassword,
-          userId
+          userId,
         ]
-      );
+      : [
+          updatedData.firstName,
+          updatedData.lastName,
+          updatedData.email,
+          updatedData.phone,
+          updatedData.status,
+          updatedData.role,
+          updatedData.availability,
+          skillsJson,
+          userId,
+        ];
+  
+    // Proceed with the update if validation passes
+    try {
+      const [result] = await pool.execute(query, values);
   
       // If the update was successful, fetch the updated record
       if (result.affectedRows > 0) {
         const [updatedUser] = await pool.execute('SELECT * FROM users WHERE id = ?', [userId]);
-        return { success: true, user: updatedUser[0],message: 'Updated successfully.'  }; // Return the first user in the result
+        return { success: true, data: updatedUser[0], message: 'Updated successfully.' };
       }
   
       return { success: false, message: 'User not found or no changes made.' };
     } catch (err) {
       console.error('Error updating user:', err);
-      return { success: false, message: `Database error: ${err.message}` }; 
+      return { success: false, message: `Database error: ${err.message}` };
     }
   }
+  
   
   // Email validation helper function
   function validateEmail(email) {
