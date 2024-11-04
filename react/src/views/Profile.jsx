@@ -11,12 +11,69 @@ import { useStateContext } from "../contexts/contextprovider";
 import { v4 as uuidv4 } from 'uuid'; 
  
 
-
+const parseJwt = (token) => {
+  try {
+    const base64Url = token.split('.')[1];
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/'); // Fix URL encoding
+    const jsonPayload = decodeURIComponent(atob(base64).split('').map(c => {
+      return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+    }).join(''));
+    return JSON.parse(jsonPayload);
+  } catch (error) {
+    console.error('Failed to decode JWT:', error);
+    return null;
+  }
+};
 
 const Profile = () => {
-    const { user } = useStateContext();
-    console.log(user)
+  const [user, setUser] = useState(null);
+  const [token, setToken] = useState(localStorage.getItem('token') || '');
+  const [userId, setUserId] = useState(null);
 
+  useEffect(() => {
+    const token = localStorage.getItem('token'); // Get the token from local storage
+
+    if (token) {
+      const decodedToken = parseJwt(token);
+      setUserId(decodedToken.userId); // Assuming userId is a field in the token
+      setUser(decodedToken.user); // Assuming user is a field in the token
+    }
+  }, []); // Run once on mount
+
+  useEffect(() => {
+    // Auto-fetch user data when token changes
+    if (token) {
+      fetchUser();
+    }
+  }, [token]); // Trigger when token changes
+
+  const fetchUser = async () => {
+    try {
+      const response = await axiosClient.get('/userToken', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (response.data && response.data.token) {
+        const newToken = response.data.token;
+        
+        // Set the token in local storage and state
+        localStorage.setItem('token', newToken);
+        setToken(newToken);
+
+        // Optionally, set user data here
+        if (response.data.user) {
+          setUser(response.data.user); // Assuming user data is also returned
+        }
+      }
+    } catch (error) {
+      console.error('Failed to fetch user:', error);
+      // Optionally clear token on error
+      localStorage.removeItem('token');
+      setToken(null);
+      setUser(null); // Clear user data on error
+    }
+  };
+  console.log("response", user);
     return (
         <div className="max-w-4xl mx-auto bg-white rounded-xl shadow-lg overflow-hidden">
           <div className="flex flex-col md:flex-row items-center p-6">
@@ -31,28 +88,64 @@ const Profile = () => {
             
             <div className="md:ml-6">
               {/* Profile Name */}
-              <h1 className="text-2xl  font-semibold text-gray-800">{user.firstName} {user.lastName}</h1>
-              <p className="text-sm  mt-4 text-gray-600">{user.role === "1" ? "Admin" : "Technitian"}</p>
+              <h1 className="text-2xl  font-semibold text-gray-800">{user?.firstName} {user?.lastName}</h1>
+              <p className="text-sm  mt-4 text-gray-600">{user?.role === "1" ? "Admin" : "Technitian"}</p>
     
               {/* Profile Details */}
               <div className="mt-4">
                 <div className="text-gray-700">
-                  <span className="font-semibold">Email:</span> {user.email}
+                  <span className="font-semibold">Email:</span> {user?.email}
                 </div>
                 <div className="text-gray-700">
-                  <span className="font-semibold">Phone:</span> {user.phone}
+                  <span className="font-semibold">Phone:</span> {user?.phone}
                 </div>
                 <div className="text-gray-700">
-                  <span className="font-semibold">Location:</span> {user.latitude}, {user.longitude}
+                  <span className="font-semibold">Location:</span> {user?.latitude}, {user?.longitude}
                 </div>
                 <div className="text-gray-700">
-                  <span className="font-semibold">Experience:</span> {user.experience}
+                  <span className="font-semibold">Experience:</span> {user?.experience}
                 </div>
                 <div className="text-gray-700">
-                  <span className="font-semibold">Skills:</span> {user.skills}
-                </div>
+  <span className="font-semibold">Skills:</span>
+  {user?.skills ? (
+    Array.isArray(user.skills) ? (
+      user.skills.map((skill) => (
+        <span key={skill.id} className="ml-2">
+          {skill.name}
+        </span>
+      ))
+    ) : (
+      // Attempt to parse if skills is a string
+      (() => {
+        try {
+          const skillsArray = JSON.parse(user.skills);
+          return skillsArray.map((skill) => (
+            <span key={skill.id} className="ml-2">
+              {skill.name},
+            </span>
+          ));
+        } catch (error) {
+          console.error("Error parsing skills:", error);
+          return <span> No skills listed.</span>;
+        }
+      })()
+    )
+  ) : (
+    <span> No skills listed.</span>
+  )}
+</div>
+
                 <div className="text-gray-700">
-                  <span className="font-semibold">Status:</span> {user.status === "1" ? "Active" : "Inactive"}
+                <div className="text-gray-700">
+  <span className="font-semibold">Status:</span>
+  <span
+    className={`ml-2 font-semibold ${
+      user?.status === "1" ? "text-green-600" : "text-red-600"
+    }`}
+  >
+    {user?.status === "1" ? "Active" : "Inactive"}
+  </span>
+</div>
                 </div>
               </div>
     

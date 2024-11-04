@@ -252,7 +252,8 @@ const confirmJob = async (taskId, status, userId, departureLocation, dispatchTim
       <b>Description:</b> ${jobTechDetail.jobDescription || 'No description available'}\n
       <b>Location:</b> ${jobTechDetail.jobLocation || 'Location not specified'}\n
       <b>Status:</b> ${jobTechDetail.status   ? 'In Progress 🟢' : ' '}\n
-      
+      <b>Salary:</b> ${jobTechDetail.salary}\n
+
       📍 <b>Dispatch Information</b>\n
       <b>Departure:</b> ${jobTechDetail.departureLocation || 'Not specified'}\n
       <b>Dispatch Time:</b> ${formatTime(jobTechDetail.dispatchTime)}\n

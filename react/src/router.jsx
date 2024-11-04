@@ -100,7 +100,7 @@ const router = createBrowserRouter([
         element: <CompletedJobs/>,
       },
       {
-        path: '/canceld-tasks',
+        path: '/cancel-tasks',
         element: <CancelJobs/>,
       },
     ],

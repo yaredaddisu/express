@@ -259,8 +259,8 @@ console.log("user", user)
             
                 {/* Additional details */}
                 <p className="mb-2"><strong>Departure Location:</strong> {viewingTaskId.departureLocation || "Not specified"}</p>
-                <p className="mb-2"><strong>Dispatch Time:</strong> {viewingTaskId.dispatchTime ? new Date(viewingTaskId.dispatchTime).toLocaleString() : "Pending"}</p>
-                <p className="mb-2"><strong>ETA:</strong> {viewingTaskId.eta ? new Date(viewingTaskId.eta).toLocaleString() : "Pending"}</p>
+                <p className="mb-2"><strong>Dispatch Time:</strong> {viewingTaskId.dispatchTime ?  viewingTaskId.dispatchTime  : "Pending"}</p>
+                <p className="mb-2"><strong>ETA:</strong> {viewingTaskId.eta ?  viewingTaskId.eta : "Pending"}</p>
                 <p className="mb-2"><strong>Driver:</strong> {viewingTaskId.driver || "Not assigned"}</p>
             
                 <div>

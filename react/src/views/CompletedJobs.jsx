@@ -142,15 +142,15 @@ console.log("user", user)
           {tasks.map((task) => (
             <div key={task.id} className="bg-sky-500 p-4 rounded-lg shadow-lg flex items-center justify-between">
               <div>
-                <h3 className="text-md font-bold">{task.title}</h3>
-                <p className="text-sm text-gray-500">{task.location}</p>
+                <h3 className="text-md text-white font-bold">{task.title}</h3>
+                <p className="text-sm text-white text-gray-500">{task.location}</p>
                 <div className="mt-2 flex items-center space-x-2">
                   <span
                     className={`px-2 py-1 text-xs font-medium rounded-full ${
-                      task.urgency === "High" ? "bg-red-100 text-red-600" : "bg-yellow-100 text-yellow-600"
+                      task.urgency === "High" ? "bg-red-100 text-red-600" : "bg-red-100 text-yellow-600"
                     }`}
                   >
-                    {task.urgency} Priority
+                    {task.urgency} High
                   </span>
                   <span
                     className={`px-2 py-1 text-xs font-medium rounded-full ${
@@ -186,9 +186,8 @@ console.log("user", user)
 
   {/* Additional details */}
   <p className="mb-2"><strong>Departure Location:</strong> {viewingTaskId.departureLocation || "Not specified"}</p>
-                <p className="mb-2"><strong>Dispatch Time:</strong> {viewingTaskId.dispatchTime ? new Date(viewingTaskId.dispatchTime).toLocaleString() : "Pending"}</p>
-                <p className="mb-2"><strong>ETA:</strong> {viewingTaskId.eta ? new Date(viewingTaskId.eta).toLocaleString() : "Pending"}</p>
-                <p className="mb-2"><strong>Driver:</strong> {viewingTaskId.driver || "Not assigned"}</p>
+  <p className="mb-2"><strong>Dispatch Time:</strong> {viewingTaskId.dispatchTime ?  viewingTaskId.dispatchTime  : "Pending"}</p>
+  <p className="mb-2"><strong>ETA:</strong> {viewingTaskId.eta ?  viewingTaskId.eta : "Pending"}</p>
                 <p className="mb-2"><strong>Description:</strong> {viewingTaskId.technicianDescription || "Not assigned"}</p>
 
                     <div className={`${viewingTaskId.status === '2' ? 'hidden' : ' '}`}>

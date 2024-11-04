@@ -171,7 +171,7 @@ const DefaultLayout = ({userData}) => {
               <DropdownMenu
               items={['Active Jobs', 'Completed Jobs', 'Canceled Jobs', 'Avalable Jobs' 
               ]}
-              links={['/confirmed-tasks', '/completed-tasks', '/canceld-tasks', '/tasks' ]}
+              links={['/confirmed-tasks', '/completed-tasks', '/cancel-tasks', '/tasks' ]}
               isOpen={true}
               onClose={() => setActiveMenu(null)}
               />
@@ -218,7 +218,7 @@ const DefaultLayout = ({userData}) => {
               <Link to="/profile" className="block py-2 px-4 text-gray-800 hover:bg-gray-200" onClick={toggleMobileMenu}>Profile</Link>
               <><Link to="/confirmed-tasks" className="block py-2 px-4 text-gray-800 hover:bg-gray-200" onClick={toggleMobileMenu}>Confirmed Jobs</Link>
                              <Link to="/completed-tasks" className="block py-2 px-4 text-gray-800 hover:bg-gray-200" onClick={toggleMobileMenu}>Completed Jobs</Link>
-                             <Link to="/canceld-tasks" className="block py-2 px-4 text-gray-800 hover:bg-gray-200" onClick={toggleMobileMenu}>Cancelled Jobs</Link>
+                             <Link to="/cancel-tasks" className="block py-2 px-4 text-gray-800 hover:bg-gray-200" onClick={toggleMobileMenu}>Cancelled Jobs</Link>
                              <Link to="/tasks" className="block py-2 px-4 text-gray-800 hover:bg-gray-200" onClick={toggleMobileMenu}>Available Jobs</Link></>
               <button onClick={onLogout} className="w-full text-left py-2 px-4 text-red-500 hover:bg-red-100">Logout</button></>
             )}
@@ -238,7 +238,7 @@ const DefaultLayout = ({userData}) => {
               <DropdownMenu
               items={['Active Jobs', 'Completed Jobs', 'Canceled Jobs', 'Avalable Jobs' 
               ]}
-              links={['/confirmed-tasks', '/completed-tasks', '/canceld-tasks', '/tasks' ]}
+              links={['/confirmed-tasks', '/completed-tasks', '/cancel-tasks', '/tasks' ]}
               isOpen={true}
               onClose={() => setActiveMenu(null)}
               />
@@ -281,14 +281,19 @@ Cancelled
   
 </nav>
 <header className="flex justify-between items-center p-4 bg-white rounded-lg shadow">
-        <div>
-       
-          <h1 className="text-xl font-bold">Hello, {userData?.firstName + " " +userData?.lastName}</h1>
-          <h3 className="text-sm text-gray-500">Technician Status: <span
-          className= { `px-4 py-2  ${ userData?.availability === '1' ? 'text-green-500  ' : 'text-red-500  '
-  }`}>{userData?.availability === "1" ? "Available" : "Not Available" }</span></h3>        </div>
-        <FiBell className="text-gray-400 w-6 h-6" />
-      </header>
+  <div className="flex flex-col">
+    <h1 className="text-xl font-bold text-left">Hello, {userData?.firstName + " " + userData?.lastName}</h1>
+    <h3 className="text-sm text-gray-500 text-left mt-1">
+      Technician Status: <span
+        className={`px-4 py-2 ${userData?.availability === '1' ? 'text-green-500' : 'text-red-500'}`}>
+        {userData?.availability === "1" ? "Available" : "Not Available"}
+      </span>
+    </h3>
+  </div>
+  <div className="ml-auto">
+    <FiBell className="text-gray-400 w-8 h-8" />
+  </div></header>
+
     
       <main>
       <ToastContainer />
