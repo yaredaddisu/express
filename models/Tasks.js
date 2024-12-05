@@ -7,7 +7,7 @@ const checkTechnicianExists = async (technician_id) => {
     const [rows] = await pool.execute(query, [technician_id]);
     return rows.length > 0;
   };
-  const telegramToken = "6685274704:AAFR-NXKCnfe7RZy9tGq5Swn2A0tDkTsrBU";
+  const telegramToken = "6685274704:AAE7ausiXp1M7AOG0wUB5f0pOO97Q8RDgzE";
   const telegramChatId = "-1002342344184";  // Use provided chat_id
 
    // Helper function to calculate completed tasks percentage
@@ -144,7 +144,7 @@ const getAllConfirmedTasks = async (userId) => {
 
     FROM jobs
     INNER JOIN job_technicians ON jobs.id = job_technicians.job_id
-    WHERE jobs.status = "2" AND jobs.technician_id = ?
+    WHERE jobs.status = "2" AND jobs.technician_id = ? ORDER BY jobs.created_at DESC
   `;
   
     try {
@@ -220,7 +220,7 @@ const confirmJob = async (taskId, status, userId, departureLocation, dispatchTim
       const [jobTechnicianDetails] = await pool.execute(
         `SELECT jt.id, jt.technician_id, jt.job_id, jt.departureLocation, jt.dispatchTime, jt.eta, jt.driver, jt.status, jt.chat_id, jt.created_at, jt.updated_at,
                 u.firstName AS technicianName, u.lastName AS technicianLastName, u.phone AS technicianPhone, 
-                j.title AS jobTitle, j.description AS jobDescription, j.location AS jobLocation, j.Reference AS jobReference
+                j.title AS jobTitle, j.description AS jobDescription, j.salary AS jobSalary, j.location AS jobLocation, j.Reference AS jobReference
          FROM job_technicians jt
          JOIN users u ON jt.technician_id = u.id
          JOIN jobs j ON jt.job_id = j.id
@@ -252,7 +252,7 @@ const confirmJob = async (taskId, status, userId, departureLocation, dispatchTim
       <b>Description:</b> ${jobTechDetail.jobDescription || 'No description available'}\n
       <b>Location:</b> ${jobTechDetail.jobLocation || 'Location not specified'}\n
       <b>Status:</b> ${jobTechDetail.status   ? 'In Progress 🟢' : ' '}\n
-      <b>Salary:</b> ${jobTechDetail.salary}\n
+     
 
       📍 <b>Dispatch Information</b>\n
       <b>Departure:</b> ${jobTechDetail.departureLocation || 'Not specified'}\n
@@ -509,7 +509,7 @@ const rejectJob = async (taskId, status, userId, data, description) => {
 };
 
 
-const CompleteJob = async (taskId, status, userId, description, data) => {
+const CompleteJob = async (taskId, status, userId, description, data,salary) => {
   try {
        // Fetch the technician details by ID
        const [technicianResult] = await pool.execute(
@@ -536,19 +536,21 @@ const CompleteJob = async (taskId, status, userId, description, data) => {
         <b>Title:</b> ${data.title || 'Not specified'}\n
         <b>Description:</b> ${data.description || 'No description available'}\n
         <b>Location:</b> ${data.location || 'Location not specified'}\n
+        <b>Salary:</b> ${salary || 'Salary not specified'}\n
         <b>Status:</b> ${data.status === '3' ? 'Completed 🔵' : 'In Progress 🟢'}\n
         📍 <b>Dispatch Information</b>\n
         <b>Departure:</b> ${data.departureLocation || 'Not specified'}\n
         <b>Dispatch Time:</b> ${formatTime(data.dispatchTime)}\n
         <b>ETA:</b> ${formatTime(data.eta)}\n 
         <b>Driver:</b> ${data.driver || 'Driver not assigned'}\n
+
         📞 <b>Technician Contact</b>\n
         <b>Phone:</b> ${technician.phone || 'No phone available'}\n
         📅 <b>Audit Information</b>\n
         <b>Created At:</b> ${data.jobCreatedAt ? new Date(data.jobCreatedAt).toLocaleString() : 'N/A'}\n
         <b>Updated At:</b> ${data.jobUpdatedAt ? new Date(data.jobUpdatedAt).toLocaleString() : 'N/A'}
   
-        📅 <b>Work Description</b>\n
+        <b>Work Description</b>\n
         <b>Description:</b> ${description || 'No description available'}\n
     `;
             
@@ -578,8 +580,8 @@ const CompleteJob = async (taskId, status, userId, description, data) => {
 
       // Proceed with database updates if Telegram update was successful
       const [result] = await pool.execute(
-          'UPDATE jobs SET status = ? WHERE id = ?',
-          [status, taskId]
+          'UPDATE jobs SET status = ?, salary = ? WHERE id = ?',
+          [status, salary, taskId]
       );
       const [result3] = await pool.execute(
           'UPDATE job_technicians SET status = ?, description = ? WHERE job_id = ?',
@@ -687,7 +689,7 @@ const CancelJob = async (taskId, status, userId, description, data) => {
       );
       const [result3] = await pool.execute(
           'UPDATE job_technicians SET status = ?, description = ? WHERE job_id = ?',
-          ["2", description, taskId]
+          ["1", description, taskId]
       );
       const [result2] = await pool.execute(
           'UPDATE users SET availability = ? WHERE id = ?',

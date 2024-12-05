@@ -6,6 +6,7 @@ import 'primeicons/primeicons.css'; // Icons
 import 'primeflex/primeflex.css'; // Optional CSS utility classes
 import DefaultLayout from './Components/DefaultLayout';
 import axiosClient from './axiosClient';
+import { useNavigate } from 'react-router-dom';
 
 const parseJwt = (token) => {
   try {
@@ -70,7 +71,25 @@ function App() {
       setUser(null); // Clear user data on error
     }
   };
+// Add a response interceptor
+axiosClient.interceptors.response.use(
+  response => response,
+  error => {
+    if (error.response && error.response.status === 401) {
+      // Token expired or unauthorized access
+      handleLogout();
+    }
+    return Promise.reject(error);
+  }
+);
 
+const handleLogout = () => {
+  // Clear any stored tokens and other user data
+  localStorage.removeItem('token');
+  localStorage.removeItem('user');
+  // Redirect to login page
+  window.location.href = '/login';
+};
   return (
     <div className="App">
       <DefaultLayout userData={user} />

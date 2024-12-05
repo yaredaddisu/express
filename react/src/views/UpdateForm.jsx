@@ -8,10 +8,39 @@ import { jsPDF } from 'jspdf';
 import { useLocation } from 'react-router-dom';
 import { useStateContext } from "../contexts/contextprovider";
 import { v4 as uuidv4 } from 'uuid';
+
+
+const parseJwt = (token) => {
+  try {
+      const base64Url = token.split('.')[1];
+      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/'); // Fix URL encoding
+      const jsonPayload = decodeURIComponent(atob(base64).split('').map(c => {
+          return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+      }).join(''));
+
+      return JSON.parse(jsonPayload);
+  } catch (error) {
+      console.error('Failed to decode JWT:', error);
+      return null;
+  }
+};
 export default function UpdateForm() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [approved, setApproved] = useState(false);
+
+  const [userId, setUserId] = useState(null);
+
+  useEffect(() => {
+    const token = localStorage.getItem('token'); // Assuming you stored your JWT in local storage
+
+    if (token) {
+        const decodedToken = parseJwt(token);
+        setUserId(decodedToken.userId); // Assuming userId is a field in the token
+       
+    }
+
+}, [userId]); // Re-fetch tasks when userId changes
 
   const [formData, setForm] = useState({
     jobAssessmentNo: '',
@@ -41,7 +70,7 @@ export default function UpdateForm() {
     approvedBy: '',
     approvedByPosition: '',
     approvedByDate: '',
-    user_id:id,
+    user_id:userId,
     reference: '',
     job_id:null,
     approved:approved
@@ -55,7 +84,6 @@ export default function UpdateForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { user } = useStateContext();
 
- 
   const handleCheckboxChange = (event) => {
       setApproved(event.target.checked);
   };
@@ -101,13 +129,15 @@ export default function UpdateForm() {
       setLoading(true);
       axiosClient.get(`/orders/${id}`)
         .then(({ data }) => {
-          setForm(data.data);
-        //  console.log(data.data.signatureFile1)
+          setForm(data);
+       
+          console.log(data.signatureFile1)
+
            setImageUrls({
-            signatureFile1: data.data.signatureFile1,
-            signatureFile2: data.data.signatureFile2,
-            signatureFile3: data.data.signatureFile3,
-            signatureFile4: data.data.signatureFile4
+            signatureFile1: data.signatureFile1,
+            signatureFile2: data.signatureFile2,
+            signatureFile3: data.signatureFile3,
+            signatureFile4: data.signatureFile4
           });
           setLoading(false);
         })
@@ -256,82 +286,65 @@ const getSignatureBlob = async (fileKey) => {
 const onSubmit = async (ev) => {
   ev.preventDefault();
 
-  // Create a new FormData object
-  const formData = new FormData();
+  const submitData = new FormData(); // Create a FormData object
 
-   // Add signature files, even if null
-   for (const fileKey of Object.keys(signatureFiles)) {
-    const signatureBlob = await getSignatureBlob(fileKey);
-    if (signatureBlob) {
-      formData.append(fileKey, signatureBlob, `${fileKey}.png`);
+  for (const fileKey of Object.keys(signatureFiles)) {
+    let signatureBlob = null;
+
+    // Check if a new signature has been drawn
+    if (isSignatureDrawn[fileKey]) {
+      const signatureDataUrl = signatureCanvasRefs[fileKey].current.toDataURL('image/png');
+      signatureBlob = await resizeImage(signatureDataUrl, 300, 100); // Resize the drawn signature
+    } else if (signatureFiles[fileKey]) {
+      // Check if a new file has been uploaded
+      const fileUrl = URL.createObjectURL(signatureFiles[fileKey]);
+      signatureBlob = await resizeImage(fileUrl, 300, 100); // Resize the uploaded signature
     }
-}       
 
+    // Append only if there's a new or updated signature
+    if (signatureBlob) {
+      submitData.append(fileKey, signatureBlob, `${fileKey}.png`);
+    }
+  }
 
-  // Append other form data except materials
+  // Append all other fields except materials
   Object.keys(formData).forEach((key) => {
     if (key !== 'materials' && formData[key] !== undefined && formData[key] !== null) {
-      formData.append(key, formData[key]);
+      submitData.append(key, formData[key]);
     }
   });
- // Conditionally append '1' if approved is true, otherwise append '0'
- formData.append('approved', approved ? '1' : '0');
 
- // Append the rest of the form data
- for (const key in formData) {
-   if (key !== 'approved') { // Skip 'approved' as it's already appended
-     formData.append(key, formData[key]);
-   }
- }
-  // Append materials as individual fields
+  // Append materials, if available
   if (formData.materials && formData.materials.length > 0) {
-    formData.materials.forEach((material, index) => {
-      formData.append(`materials[${index}][id]`, material.id);
-      formData.append(`materials[${index}][materialUsed]`, material.materialUsed);
-      formData.append(`materials[${index}][mst]`, material.mst);
-      formData.append(`materials[${index}][qty]`, material.qty);
-      formData.append(`materials[${index}][remark]`, material.remark || '');
-    });
+    submitData.append('materials', JSON.stringify(formData.materials));
   }
 
   setLoading(true);
   setUploadStatus('Uploading...');
 
   try {
-    let response;
+    const response = id
+      ? await axiosClient.put(`/orders/${id}`, submitData, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        })
+      : await axiosClient.post('/orders', submitData, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        });
 
-    if (id) {
-      formData.append('_method', 'put');
-      response = await axiosClient.post(`/orders/${id}`, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
+    console.log('Submission successful:', response.data);
+    setSuccess(response.data.message);
 
-      fetchData(id);
-     
-  
-    } else { 
-      response = await axiosClient.post('/orders', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
-    }
-
-    console.log('Files uploaded successfully:', response.data);
-    setSuccess(response.data.message)
-    navigate(`/orders/${id || response.data.id}`);
+    // Trigger full reload after successful submission
+   window.location.reload();
   } catch (error) {
-    const response = error.response;
-
-    if (response && response.status === 422) {
-      setErrors(response.data.errors);
-    } else {
-      setErrors("An unexpected error occurred.");
-    }
+    console.error('Error submitting form:', error);
+    setErrors(error.response?.data?.errors || 'An unexpected error occurred.');
   } finally {
     setLoading(false);
   }
 };
 
- 
+
 // Utility function to add a new page if needed
 const addPageIfNeeded = (height) => {
   if (currentY + height > doc.internal.pageSize.height - margin) {
@@ -676,7 +689,7 @@ const sendToTelegram = async (pdfBlob) => {
   formData.append('chat_id', chat_id);
   formData.append('document', pdfBlob, 'HVAC-R_Services_Form.pdf');
 
-  const token = '6685274704:AAFR-NXKCnfe7RZy9tGq5Swn2A0tDkTsrBU'; // Your bot token
+  const token = '6685274704:AAE7ausiXp1M7AOG0wUB5f0pOO97Q8RDgzE'; // Your bot token
 
   try {
       const response = await fetch(`https://api.telegram.org/bot${token}/sendDocument`, {
@@ -1238,6 +1251,7 @@ Add Material
         </Link>
     </div>
 </div>
+{/* <img src={base64String} alt="Uploaded" /> */}
 
       </form>
     )}

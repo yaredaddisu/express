@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axiosClient from "../axiosClient";
 import Modal from '../Components/Modal';
- import LoadingSpinner from "../Components/LoadingSpiner";
+import LoadingSpinner from "../Components/LoadingSpiner";
 import JobForm from '../Components/CreateJob'; // Adjust path as necessary
 import Button from "../Components/Button";
 import Buttons from "../Components/Buttons";
@@ -10,38 +10,47 @@ import { toast } from "react-toastify";
 
 export default function Users() {
     const [loading, setLoading] = useState(false);
-    const [jobs, setJobs] = useState([]);
+    const [jobs, setJobs] = useState([]); // Initialize jobs as an empty array
     const [jobData, setJobData] = useState({});
     const [currentPage, setCurrentPage] = useState(0);
     const [search, setSearch] = useState('');
     const [pageSize, setPageSize] = useState(10); // Default page size
+    const [totalPages, setTotalPages] = useState(0); // Total pages from the server
     const [isModalOpen, setIsModalOpen] = useState(false);
     const navigate = useNavigate();
 
     useEffect(() => {
         getJobs();
-    }, []);
+    }, [currentPage, pageSize, search]);
 
     const getJobs = () => {
         setLoading(true);
-        axiosClient.get('/jobs')
+        axiosClient
+            .get('/jobs', {
+                params: {
+                    page: currentPage + 1,
+                    pageSize,
+                    search,
+                },
+            })
             .then(({ data }) => {
                 setLoading(false);
-                setJobs(data.data);
+                setJobs(data.data.jobs || []); // Fallback to empty array if undefined
+                setTotalPages(data.data.totalPages);
+                console.log(data.data.jobs)
             })
             .catch(() => {
                 setLoading(false);
             });
     };
-  
+
     const onDeleteClick = (job) => {
         if (!window.confirm("Are you sure you want to delete this job?")) return;
         axiosClient.delete(`/jobs/${job.id}`)
-            .then((res) =>{
-                getJobs()
-                console.log(res.data.message)
-                toast.success(res.data.message)
-            } );
+            .then((res) => {
+                getJobs();
+                toast.success(res.data.message);
+            });
     };
 
     const handleEdit = (job) => {
@@ -58,31 +67,13 @@ export default function Users() {
         setIsModalOpen(false);
     };
 
-    // Pagination and search logic
-    const filteredJobs = jobs.filter((job) => {
-        const phone = job.phone ? job.phone.toString() : ""; // Handle null or undefined phone
-        return (
-          job.id.toString().includes(search) || // Convert job.id to string for search
-          job.Reference?.toLowerCase().includes(search.toLowerCase()) || // Optional chaining for null checks
-          job.title?.toLowerCase().includes(search.toLowerCase()) ||
-          job.description?.toLowerCase().includes(search.toLowerCase()) ||
-          job.company?.toLowerCase().includes(search.toLowerCase()) ||
-          phone.includes(search) // Phone handled separately
-        );
-      });
-      
-  
-
-    const numPages = Math.ceil(filteredJobs.length / pageSize);
-    const jobsPaginated = filteredJobs.slice(currentPage * pageSize, (currentPage + 1) * pageSize);
-
     const handlePageChange = (page) => {
         setCurrentPage(page);
     };
 
     const handlePageSizeChange = (e) => {
         setPageSize(parseInt(e.target.value));
-        setCurrentPage(0); // Reset to first page when page size changes
+        setCurrentPage(0);
     };
 
     return (
@@ -102,9 +93,7 @@ export default function Users() {
 
             <h1 className="text-3xl font-bold mb-6">Job Listings</h1>
 
-            {/* Search and Page Size Controls */}
             <div className="flex justify-between items-center mb-4">
-                {/* Page Size Dropdown */}
                 <div className="flex items-center">
                     <select
                         value={pageSize}
@@ -118,7 +107,6 @@ export default function Users() {
                     </select>
                 </div>
 
-                {/* Search Input */}
                 <div className="flex items-center">
                     <input
                         type="text"
@@ -143,56 +131,65 @@ export default function Users() {
                             <th>Location</th>
                             <th>Salary</th>
                             <th>Status</th>
+                            <th>Created At</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {jobsPaginated.map((job) => (
-                            <tr key={job.id} className="border-t border-gray-200">
-                                <td>{job.id}</td>
-                                <td>{job.Reference}</td>
-                                <td>{job.title}</td>
-                                <td>{job.description}</td>
-                                <td>{job.company}</td>
-                                <td>{job.phone}</td>
-                                <td>{job.location}</td>
-                                <td>ETB {job.salary}</td>
-                                <td>
-                                    <button className={`font-medium ${job.status === '2' ? 'bg-blue-500 text-white' : job.status === '1' ? 'bg-green-500 text-white' : job.status === '3' ? 'bg-yellow-500 text-white' : 'bg-red-500 text-white'} px-2 py-1 rounded`}>
-                                        {job.status === '2' ? 'Completed' : job.status === '1' ? 'Open' : job.status === '3' ? 'In Progress' : 'Closed'}
-                                    </button>
-                                </td>
-                                <td className="flex space-x-2">
-                                    <button
-                                        onClick={() => handleView(job.id)}
-                                        className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
-                                    >
-                                        View
-                                    </button>
-                                    <button
-                                        onClick={() => handleEdit(job)}
-                                        className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-                                    >
-                                        Edit
-                                    </button>
-                                    <button
-                                        onClick={() => onDeleteClick(job)}
-                                        className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
-                                    >
-                                        Delete
-                                    </button>
+                        {Array.isArray(jobs) && jobs.length > 0 ? (
+                            jobs.map((job) => (
+                                <tr key={job.id} className="border-t border-gray-200">
+                                    <td>{job.id}</td>
+                                    <td>{job.Reference}</td>
+                                    <td>{job.title}</td>
+                                    <td>{job.description}</td>
+                                    <td>{job.company}</td>
+                                    <td>{job.phone}</td>
+                                    <td>{job.location}</td>
+                                    <td>ETB {job.salary}</td>
+                                    <td>
+                                        <button className={`font-medium ${job.status === '2' ? 'bg-blue-500 text-white' : job.status === '1' ? 'bg-green-500 text-white' : job.status === '3' ? 'bg-yellow-500 text-white' : 'bg-red-500 text-white'} px-2 py-1 rounded`}>
+                                            {job.status === '2' ? 'Completed' : job.status === '1' ? 'Open' : job.status === '3' ? 'In Progress' : 'Closed'}
+                                        </button>
+                                    </td>
+                                    <td>{job.created_at}</td>
+                                    <td className="flex space-x-2">
+                                        <button
+                                            onClick={() => handleView(job.id)}
+                                            className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
+                                        >
+                                            View
+                                        </button>
+                                        <button
+                                            onClick={() => handleEdit(job)}
+                                            className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+                                        >
+                                            Edit
+                                        </button>
+                                        <button
+                                            onClick={() => onDeleteClick(job)}
+                                            className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
+                                        >
+                                            Delete
+                                        </button>
+                                    </td>
+                                </tr>
+                            ))
+                        ) : (
+                            <tr>
+                                <td colSpan="11" className="text-center p-4">
+                                    No jobs found.
                                 </td>
                             </tr>
-                        ))}
+                        )}
                     </tbody>
                 </table>
             </div>
 
-            {/* Pagination */}
             <div className="p-3 lg:px-6 border-t border-gray-100 dark:border-slate-800">
                 <div className="flex flex-col md:flex-row items-center justify-between py-3 md:py-0">
                     <Buttons>
-                        {Array.from({ length: numPages }).map((_, page) => (
+                        {Array.from({ length: totalPages }).map((_, page) => (
                             <Button
                                 key={page}
                                 active={page === currentPage}
@@ -204,7 +201,7 @@ export default function Users() {
                         ))}
                     </Buttons>
                     <small className="mt-6 md:mt-0">
-                        Page {currentPage + 1} of {numPages}
+                        Page {currentPage + 1} of {totalPages}
                     </small>
                 </div>
             </div>

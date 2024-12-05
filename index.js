@@ -142,8 +142,15 @@ const express = require('express');
 const cors = require('cors');
 const { createRegion, getAllRegions, updateRegion } = require('./models/Region');
 const { createUser,getAllUsers,updateUser,getUserById,deleteUserById} = require('./models/Users');
-const { createJob,getAllJobs,getJobById,updateJob,deleteJobById } = require('./models/Jobs');
+const { createJob,getAllJobs,getJobById,updateJob,deleteJobById,saveOrderDetails,updateOrderDetails,approveOrderById,fetchAllOrders,getOrderById } = require('./models/Jobs');
  const {  getAllTasks ,confirmJob,getAllConfirmedTasks,rejectJob,CompleteJob, CompletedJobs,CancelJob,totalSalary, getCancelJobs,activeJobsCount,completedPercentage} = require('./models/Tasks');
+ const {  getAllTechniciansCount,getConfirmedTasksCount,
+  getCompletedTasksCount,
+  getCanceledTasksCount,
+  getAllTasksCount,
+  getTotalSalary, 
+  allCompletedPercentage,allJobsCount,totalCompletedJobs,importExcel
+} = require('./models/Reports');
 
 
 // const Sequelize = require('sequelize');
@@ -172,8 +179,19 @@ require('dotenv').config();
 const userRoutes = require('./routes/userRoutes'); // Adjust the path to your user routes
 const { Op, fn, col, literal } = require('sequelize');
 const User = require('./model/User'); // Adjust the path to your User model
+const authorizeRole = require('./middleware/authorizeRole.js');
 
 const app = express();
+const axios = require('axios');
+const multer = require('multer');
+const FormData = require('form-data');
+const { json } = require('body-parser');
+
+ 
+app.use(express.json()); // Parse incoming JSON payloads
+const storage = multer.memoryStorage(); 
+//const upload = multer(); // For handling file uploads
+const upload = multer({ storage: storage });
 
 app.use(cors());
 app.use(express.json());
@@ -238,7 +256,7 @@ app.put('/api/Region/Update/:id', authenticate, async (req, res) => {
     });
   }
 });
-app.post('/api/users-registration', authenticate, async (req, res) => {
+app.post('/api/users-registration',authenticate, authorizeRole("1"), async (req, res) => {
     try {
       const users = await createUser(req.body);
       console.log(req.body);
@@ -253,7 +271,7 @@ app.post('/api/users-registration', authenticate, async (req, res) => {
     }
   });
 
-  app.get('/api/users-registration', authenticate, async (req, res) => {
+  app.get('/api/users-registration', authenticate, authorizeRole("1" ), async (req, res) => {
     const { PageNumber = 1, PageSize = 10, SearchTerm = '' } = req.query;
   
     const pageNumber = parseInt(PageNumber, 10);
@@ -277,7 +295,7 @@ app.post('/api/users-registration', authenticate, async (req, res) => {
       });
     }
   });
-  app.put('/api/users-registration/:id', authenticate, async (req, res) => {
+  app.put('/api/users-registration/:id', authenticate, authorizeRole("1"), async (req, res) => {
     const userId = req.params.id;
     const updatedData = req.body;
   
@@ -306,7 +324,7 @@ app.post('/api/users-registration', authenticate, async (req, res) => {
       });
     }
   });
-  app.get('/api/users-registration/:id', authenticate, async (req, res) => {
+  app.get('/api/users-registration/:id', authenticate, authorizeRole("1"), async (req, res) => {
     const userId = req.params.id;
   
     try {
@@ -330,11 +348,13 @@ app.post('/api/users-registration', authenticate, async (req, res) => {
     }
   });
 
-  app.post('/api/jobs', authenticate, async (req, res) => {
+  app.post('/api/jobs', authenticate, authorizeRole("1"), async (req, res) => {
+    
     try {
       const users = await createJob(req.body);
    
       if (users.success) {
+
         res.status(200).json(users);
       } else {
         res.status(500).json(users);
@@ -345,31 +365,44 @@ app.post('/api/users-registration', authenticate, async (req, res) => {
     }
   });
 
-  app.get('/api/jobs', authenticate, async (req, res) => {
-    const { PageNumber = 1, PageSize = 10, SearchTerm = '' } = req.query;
-  
-    const pageNumber = parseInt(PageNumber, 10);
-    const pageSize = parseInt(PageSize, 10);
-    const searchTerm = `%${SearchTerm}%`;
-  
-    try {
-      const results = await getAllJobs(pageNumber, pageSize, searchTerm);
-      
-      // Send results in the desired format: data.data
-      res.status(200).json({
-        success: true,  // optional success indicator
-       
-          data: results  // Wrap results in a data object as an array
-      
-      });
-    } catch (err) {
-      res.status(500).json({
-        success: false,
-        message: err.message
-      });
-    }
-  });
-  app.put('/api/jobs/:id', authenticate, async (req, res) => {
+ // Function to retrieve jobs with pagination and search
+
+// API route handler
+app.get('/api/jobs', authenticate, authorizeRole("1"), async (req, res) => {
+  // Use lowercase parameter names to match frontend params
+  const { page = 1, pageSize = 10, search = '' } = req.query;
+
+  // Convert page and pageSize to integers, and set default if NaN
+  const pageNumber = parseInt(page, 10) || 1;
+  const pageSizeInt = parseInt(pageSize, 10) || 10;
+
+  // Wrap search term with `%` for partial matching
+  const searchTerm = `%${search}%`;
+
+  try {
+    // Call getAllJobs with updated parameters
+    const { jobs, totalCount } = await getAllJobs(pageNumber, pageSizeInt, searchTerm);
+
+    // Respond with job data, total pages, and current page
+    res.status(200).json({
+      success: true,
+      data: {
+        jobs,
+        totalPages: Math.ceil(totalCount / pageSizeInt),
+        currentPage: pageNumber,
+      }
+    });
+  } catch (err) {
+    // Send error message if query fails
+    res.status(500).json({
+      success: false,
+      message: 'Failed to retrieve jobs: ' + err.message,
+    });
+  }
+});
+
+
+  app.put('/api/jobs/:id', authenticate, authorizeRole("1"), async (req, res) => {
  
   
     try {
@@ -389,7 +422,7 @@ app.post('/api/users-registration', authenticate, async (req, res) => {
       });
     }
   });
-  app.get('/api/jobs/:id', authenticate, async (req, res) => {
+  app.get('/api/jobs/:id', authenticate, authorizeRole("1"), async (req, res) => {
     const jobId = req.params.id;
   
     try {
@@ -413,7 +446,13 @@ app.post('/api/users-registration', authenticate, async (req, res) => {
     }
   });
 // DELETE job by ID
-app.delete('/api/jobs/:id', async (req, res) => {
+ 
+
+// Setup multer for file uploads
+//const storage = multer.memoryStorage(); // Store files in memory (or use diskStorage for saving to disk)
+//const upload = multer({ storage: storage });
+
+app.delete('/api/jobs/:id', authenticate, authorizeRole("1"), async (req, res) => {
     const jobId = req.params.id;
     
     try {
@@ -429,8 +468,429 @@ app.delete('/api/jobs/:id', async (req, res) => {
       return res.status(500).json({ success: false, message: 'Internal server error' });
     }
   });
+  app.get('/api/orders/:id', authenticate , async (req, res) => {
+    const jobId = req.params.id;
+  
+    try {
+      // Assuming `getUserById` is a function that fetches the user by ID
+      const data = await getOrderById(jobId);
+      console.log("data", data)
+      if (data) {
+        // Return the user in the requested format: data.data
+        res.status(200).json(data);
+      } else {
+        res.status(404).json({
+          success: false,
+          message: 'User not found'
+        });
+      }
+    } catch (err) {
+      res.status(500).json({
+        success: false,
+        message: err.message
+      });
+    }
+  });
+  app.get('/api/order-by-slug/:id' , async (req, res) => {
+    const jobId = req.params.id;
+  
+    try {
+      // Assuming `getUserById` is a function that fetches the user by ID
+      const data = await getOrderById(jobId);
+      console.log("data", data)
+      if (data) {
+        // Return the user in the requested format: data.data
+        res.status(200).json(data);
+      } else {
+        res.status(404).json({
+          success: false,
+          message: 'User not found'
+        });
+      }
+    } catch (err) {
+      res.status(500).json({
+        success: false,
+        message: err.message
+      });
+    }
+  });
+ 
+  app.post('/api/orders', authenticate, upload.fields([
+    { name: 'signatureFile1' },
+    { name: 'signatureFile2' },
+    { name: 'signatureFile3' },
+    { name: 'signatureFile4' },
+  ]), async (req, res) => {
+    const {
+      jobAssessmentNo,
+      typeOfService,
+      clientName,
+      startDate,
+      branch,
+      startTime,
+      endTime,
+      telephone,
+      supervisorName,
+      typesOfWork,
+      typesOfMachine,
+      temperature,
+      natureOfProblem,
+      detailProblemReported,
+      serviceRendered,
+      performanceAssurance,
+      customerComment,
+      executedBy,
+      executedByPosition,
+      executedByDate,
+      checkedBy,
+      checkedByPosition,
+      checkedByDate,
+      approvedBy,
+      approvedByPosition,
+      approvedByDate,
+      user_id,
+      reference,
+      job_id,
+      materials,
+    } = req.body;
+
+    const files = req.files;
+
+    // Convert materials (array of objects) to a JSON string
+    const materialsData = JSON.stringify(JSON.parse(materials));
+
+    // Convert uploaded files to Base64 strings
+    const convertFileToBase64 = (file) =>
+      file ? `data:${file.mimetype};base64,${file.buffer.toString("base64")}` : null;
+
+    const signatureFile1 = files.signatureFile1 ? convertFileToBase64(files.signatureFile1[0]) : null;
+    const signatureFile2 = files.signatureFile2 ? convertFileToBase64(files.signatureFile2[0]) : null;
+    const signatureFile3 = files.signatureFile3 ? convertFileToBase64(files.signatureFile3[0]) : null;
+    const signatureFile4 = files.signatureFile4 ? convertFileToBase64(files.signatureFile4[0]) : null;
+    console.log( "signatureFile1",signatureFile1)
+    try {
+      // Call the model method to save the order
+      const result = await saveOrderDetails({
+        jobAssessmentNo,
+        typeOfService,
+        clientName,
+        startDate,
+        branch,
+        startTime,
+        endTime,
+        telephone,
+        supervisorName,
+        typesOfWork,
+        typesOfMachine,
+        temperature,
+        natureOfProblem,
+        detailProblemReported,
+        serviceRendered,
+        performanceAssurance,
+        customerComment,
+        executedBy,
+        executedByPosition,
+        executedByDate,
+        checkedBy,
+        checkedByPosition,
+        checkedByDate,
+        approvedBy,
+        approvedByPosition,
+        approvedByDate,
+        user_id,
+        reference,
+        job_id,
+        materialsData,
+        signatureFile1,
+        signatureFile2,
+        signatureFile3,
+        signatureFile4,
+      });
+
+      if (result.success) {
+ 
+
+        return res.status(200).json({ success: true, message: 'Order saved successfully!',  insertId: result.insertId });
+      } else {
+        return res.status(400).json({ success: false, message: result.message });
+      }
+    } catch (err) {
+      console.error('Error saving order:', err);
+      return res.status(500).json({ success: false, message: 'Internal server error' });
+    }
+  });
+
+  app.put('/api/order-by-slug/:id', authenticate, upload.fields([
+    { name: 'signatureFile1' },
+    { name: 'signatureFile2' },
+    { name: 'signatureFile3' },
+    { name: 'signatureFile4' },
+  ]), async (req, res) => {
+    const {
+      jobAssessmentNo,
+      typeOfService,
+      clientName,
+      startDate,
+      branch,
+      startTime,
+      endTime,
+      telephone,
+      supervisorName,
+      typesOfWork,
+      typesOfMachine,
+      temperature,
+      natureOfProblem,
+      detailProblemReported,
+      serviceRendered,
+      performanceAssurance,
+      customerComment,
+      executedBy,
+      executedByPosition,
+      executedByDate,
+      checkedBy,
+      checkedByPosition,
+      checkedByDate,
+      approvedBy,
+      approvedByPosition,
+      approvedByDate,
+      user_id,
+      reference,
+      job_id,
+      materials,
+    } = req.body;
+  
+    const files = req.files;
+    const { id } = req.params;
+   console.log(id)
+    // Convert materials to JSON string
+    const materialsData = JSON.stringify(JSON.parse(materials));
+  
+    // Convert uploaded files to Base64 strings
+    const convertFileToBase64 = (file) =>
+      file ? `data:${file.mimetype};base64,${file.buffer.toString('base64')}` : null;
+  
+    const signatureFile1 = files.signatureFile1 ? convertFileToBase64(files.signatureFile1[0]) : null;
+    const signatureFile2 = files.signatureFile2 ? convertFileToBase64(files.signatureFile2[0]) : null;
+    const signatureFile3 = files.signatureFile3 ? convertFileToBase64(files.signatureFile3[0]) : null;
+    const signatureFile4 = files.signatureFile4 ? convertFileToBase64(files.signatureFile4[0]) : null;
+  
+    try {
+      const result = await updateOrderDetails({
+        id,
+        jobAssessmentNo,
+        typeOfService,
+        clientName,
+        startDate,
+        branch,
+        startTime,
+        endTime,
+        telephone,
+        supervisorName,
+        typesOfWork,
+        typesOfMachine,
+        temperature,
+        natureOfProblem,
+        detailProblemReported,
+        serviceRendered,
+        performanceAssurance,
+        customerComment,
+        executedBy,
+        executedByPosition,
+        executedByDate,
+        checkedBy,
+        checkedByPosition,
+        checkedByDate,
+        approvedBy,
+        approvedByPosition,
+        approvedByDate,
+        user_id,
+        reference,
+        job_id,
+        materialsData,
+        signatureFile1,
+        signatureFile2,
+        signatureFile3,
+        signatureFile4,
+      });
+  
+      if (result.success) {
+        return res.status(200).json({ success: true, message: 'Order updated successfully!' });
+      } else {
+        return res.status(400).json({ success: false, message: result.message });
+      }
+    } catch (err) {
+      console.error('Error updating order:', err);
+      return res.status(500).json({ success: false, message: 'Internal server error' });
+    }
+  });
+  app.put(
+    '/api/orders/:id',
+    authenticate,
+    upload.fields([
+      { name: 'signatureFile1' },
+      { name: 'signatureFile2' },
+      { name: 'signatureFile3' },
+      { name: 'signatureFile4' },
+    ]),
+    async (req, res) => {
+      const {
+        jobAssessmentNo,
+        typeOfService,
+        clientName,
+        startDate,
+        branch,
+        startTime,
+        endTime,
+        telephone,
+        supervisorName,
+        typesOfWork,
+        typesOfMachine,
+        temperature,
+        natureOfProblem,
+        detailProblemReported,
+        serviceRendered,
+        performanceAssurance,
+        customerComment,
+        executedBy,
+        executedByPosition,
+        executedByDate,
+        checkedBy,
+        checkedByPosition,
+        checkedByDate,
+        approvedBy,
+        approvedByPosition,
+        approvedByDate,
+        user_id,
+        reference,
+        job_id,
+        materials,
+      } = req.body;
+  
+      const files = req.files;
+      const { id } = req.params;
+  
+      console.log(id);
+  
+      // Convert materials to JSON string
+      const materialsData = JSON.stringify(JSON.parse(materials));
+  
+      // Convert uploaded files to Base64 strings
+      const convertFileToBase64 = (file) =>
+        file ? `data:${file.mimetype};base64,${file.buffer.toString('base64')}` : null;
+  
+      const signatureFile1 = files.signatureFile1 ? convertFileToBase64(files.signatureFile1[0]) : null;
+      const signatureFile2 = files.signatureFile2 ? convertFileToBase64(files.signatureFile2[0]) : null;
+      const signatureFile3 = files.signatureFile3 ? convertFileToBase64(files.signatureFile3[0]) : null;
+      const signatureFile4 = files.signatureFile4 ? convertFileToBase64(files.signatureFile4[0]) : null;
+  
+      try {
+        const updateData = {
+          id,
+          jobAssessmentNo,
+          typeOfService,
+          clientName,
+          startDate,
+          branch,
+          startTime,
+          endTime,
+          telephone,
+          supervisorName,
+          typesOfWork,
+          typesOfMachine,
+          temperature,
+          natureOfProblem,
+          detailProblemReported,
+          serviceRendered,
+          performanceAssurance,
+          customerComment,
+          executedBy,
+          executedByPosition,
+          executedByDate,
+          checkedBy,
+          checkedByPosition,
+          checkedByDate,
+          approvedBy,
+          approvedByPosition,
+          approvedByDate,
+          user_id,
+          reference,
+          job_id,
+          materialsData,
+        };
+  
+        // Only include signatures if they are not null
+        if (signatureFile1) updateData.signatureFile1 = signatureFile1;
+        if (signatureFile2) updateData.signatureFile2 = signatureFile2;
+        if (signatureFile3) updateData.signatureFile3 = signatureFile3;
+        if (signatureFile4) updateData.signatureFile4 = signatureFile4;
+  
+        const result = await updateOrderDetails(updateData);
+  
+        if (result.success) {
+          return res.status(200).json({ success: true, message: 'Order updated successfully!' });
+        } else {
+          return res.status(400).json({ success: false, message: result.message });
+        }
+      } catch (err) {
+        console.error('Error updating order:', err);
+        return res.status(500).json({ success: false, message: 'Internal server error' });
+      }
+    }
+  );
+  
+// PUT /api/approve/:id
+app.put('/api/approve/:id', async (req, res) => {
+  const { id } = req.params;
+  const { approved } = req.body; // Extract 'approved' from the request body
+console.log(id)
+  if (approved !== 1) {
+    return res.status(400).json({
+      success: false,
+      message: 'Invalid approval value.',
+    });
+  }
+  try {
+    const result = await approveOrderById(id,approved);
+
+    if (result.affectedRows > 0) {
+      res.status(200).json({
+        success: true,
+        message: 'Order approved successfully!',
+      });
+    } else {
+      res.status(404).json({
+        success: false,
+        message: 'Order not found.',
+      });
+    }
+  } catch (error) {
+    console.error('Error approving order:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error.',
+    });
+  }
+});
+
+  // GET /api/getOrders
+app.get('/api/getOrders', async (req, res) => {
+  try {
+    const orders = await fetchAllOrders(); // Use the reusable function
+    res.status(200).json({
+      success: true,
+      data: orders,
+    });
+  } catch (error) {
+    console.error('Error fetching job orders:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch job orders.',
+    });
+  }
+});
+
   // DELETE user by ID
-  app.delete('/api/users/:id', async (req, res) => {
+  app.delete('/api/users/:id', authenticate, authorizeRole("1"), async (req, res) => {
     const userId = req.params.id;
     
     try {
@@ -582,7 +1042,7 @@ app.post('/api/send-sms', async (req, res) => {
 //   const pageAccessToken = 'EAAF1pWMJ19YBO7axqg9PfQSFC69kSZA8eHHaFXBen4q4pibZB1DHEBi6pNYspCuZAVON1ZBv3joFXgwBTOwBsIl9ScDk9kHE4Coty3IpN7vFZCD6RQlMN0GmkqDcos2dFQY8YWEJZAt386BZCxY4bwvnkXvdDmg8z8j8CpwwlCQJ1t2a4vMA5XKx1sN1g5vu6AZD';
 //   const pageId = '107493672373057';
 
-//   const telegramBotToken = '6685274704:AAFR-NXKCnfe7RZy9tGq5Swn2A0tDkTsrBU'; // Your bot token
+//   const telegramBotToken = '6685274704:AAE7ausiXp1M7AOG0wUB5f0pOO97Q8RDgzE'; // Your bot token
 //   const telegramChatId = '@lomiworks';
 //   const telegramChatId2 = '@jobsite123';
 
@@ -664,20 +1124,12 @@ app.post('/api/send-sms', async (req, res) => {
 //   }
 // });
 
-const axios = require('axios');
-const multer = require('multer');
-const FormData = require('form-data');
-const { json } = require('body-parser');
 
- 
-app.use(express.json()); // Parse incoming JSON payloads
-
-const upload = multer(); // For handling file uploads
 
 // Facebook and Telegram credentials
 const pageAccessToken = 'EAAF1pWMJ19YBO7axqg9PfQSFC69kSZA8eHHaFXBen4q4pibZB1DHEBi6pNYspCuZAVON1ZBv3joFXgwBTOwBsIl9ScDk9kHE4Coty3IpN7vFZCD6RQlMN0GmkqDcos2dFQY8YWEJZAt386BZCxY4bwvnkXvdDmg8z8j8CpwwlCQJ1t2a4vMA5XKx1sN1g5vu6AZD';
 const pageId = '107493672373057';
-const telegramBotToken = '6685274704:AAFR-NXKCnfe7RZy9tGq5Swn2A0tDkTsrBU';
+const telegramBotToken = '6685274704:AAE7ausiXp1M7AOG0wUB5f0pOO97Q8RDgzE';
 const telegramChatId = '@lomiworks';
 const telegramChatId2 = '@jobsite123';
 
@@ -1086,29 +1538,66 @@ app.get('/api/tasks/:id', authenticate, async (req, res) => {
       });
   }
 });
+const jwt = require('jsonwebtoken');
+const secretKey = process.env.JWT_SECRET; // Use the same secret key you used to sign the token
+
 app.get('/api/completed/:id', authenticate, async (req, res) => {
-  // Assuming the userId is stored in the JWT and available in req.user
-  const userId = req.params.id;
+  const authHeader = req.headers.authorization;
+  
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({ success: false, message: 'No token provided' });
+  }
 
-  console.log('Fetching tasks for user ID:', userId);
+  const token = authHeader.split(' ')[1];
+
   try {
-      // Fetch tasks using the userId from the JWT
-      const results = await CompletedJobs(userId); // This function should handle fetching tasks from the database
+    // Decode the token to get the userId
+    const decoded = jwt.verify(token, secretKey);
+    const userId = decoded.userId; // Make sure userId is in the token payload
 
-      console.log('Fetched tasks:', results);
-      // Send results in the desired format: data.data
-      res.status(200).json({
-          success: true,
-          data: results // Wrap results in a data object
-      });
+    console.log('Fetching tasks for userId:', userId);
+
+    // Fetch tasks using the userId
+    const results = await CompletedJobs(userId);
+
+    console.log('Fetched tasks:', results);
+    // Send results in the desired format
+    res.status(200).json({
+      success: true,
+      data: results // Wrap results in a data object
+    });
   } catch (err) {
-      console.error('Error fetching tasks:', err.message);
-      res.status(500).json({
-          success: false,
-          message: err.message
-      });
+    console.error('Error fetching tasks:', err.message);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to authenticate token'
+    });
   }
 });
+
+// app.get('/api/completed/:id', authenticate, async (req, res) => {
+//   // Assuming the userId is stored in the JWT and available in req.user
+//   const userId = req.params.id;
+
+//   console.log('Fetching :', req);
+//   try {
+//       // Fetch tasks using the userId from the JWT
+//       const results = await CompletedJobs(userId); // This function should handle fetching tasks from the database
+
+//       console.log('Fetched tasks:', results);
+//       // Send results in the desired format: data.data
+//       res.status(200).json({
+//           success: true,
+//           data: results // Wrap results in a data object
+//       });
+//   } catch (err) {
+//       console.error('Error fetching tasks:', err.message);
+//       res.status(500).json({
+//           success: false,
+//           message: err.message
+//       });
+//   }
+// });
 
 // app.put('/api/tasks/:taskId/status', async (req, res) => {
 //   const { taskId } = req.params;
@@ -1298,11 +1787,11 @@ app.get('/api/cancel-tasks/:id', authenticate, async (req, res) => {
 
 app.put('/api/confirmed-tasks/:taskId/status', async (req, res) => {
   const { taskId } = req.params;
-  const { status ,userId, description,data} = req.body;
+  const { status ,userId, description,data,salary} = req.body;
 
   console.log(`Updating task ${taskId} to status ${status}`);
   try{
-  const results = await  CompleteJob(taskId, status,userId,description,data)
+  const results = await  CompleteJob(taskId, status,userId,description,data,salary)
   res.status(200).json({data: results});
       
   } catch (err) {
@@ -1354,6 +1843,148 @@ app.get('/api/totalSalary/:userId', async (req, res) => {
       });
   }
 
+});
+
+
+
+//reports
+
+ 
+
+app.get('/api/reports/users', authenticate, authorizeRole("1"), async (req, res) => {
+  
+  try{
+  const results = await  getAllTechniciansCount()
+      res.status(200).json({totalUsersCount: results});
+      console.log(results)
+  } catch (err) {
+      console.error('Error fetching tasks:', err.message);
+      res.status(500).json({
+          success: false,
+          message: err.message
+      });
+  }
+
+});
+
+app.get('/api/reports/confirmed-tasks', authenticate, authorizeRole("1"), async (req, res) => {
+  try {
+      const results = await getConfirmedTasksCount(); // Implement this function
+      res.status(200).json({ confirmedTasksCount: results });
+  } catch (err) {
+      console.error('Error fetching confirmed tasks:', err.message);
+      res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+app.get('/api/reports/completed', authenticate, authorizeRole("1"), async (req, res) => {
+  try {
+      const results = await getCompletedTasksCount(); // Implement this function
+      res.status(200).json({ completedTasksCount: results });
+  } catch (err) {
+      console.error('Error fetching completed tasks:', err.message);
+      res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+app.get('/api/reports/cancel-tasks', authenticate, authorizeRole("1"), async (req, res) => {
+  try {
+      const results = await getCanceledTasksCount(); // Implement this function
+      res.status(200).json({ canceledTasksCount: results });
+  } catch (err) {
+      console.error('Error fetching canceled tasks:', err.message);
+      res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+app.get('/api/reports/tasks', authenticate, authorizeRole("1"), async (req, res) => {
+  try {
+      const results = await getAllTasksCount(); // Implement this function
+      res.status(200).json({ totalTasksCount: results });
+  } catch (err) {
+      console.error('Error fetching all tasks:', err.message);
+      res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+app.get('/api/reports/totalSalary', authenticate, authorizeRole("1"), async (req, res) => {
+  try {
+      const results = await getTotalSalary(); // Implement this function
+      res.status(200).json({ totalSalary: results });
+  } catch (err) {
+      console.error('Error fetching total salary:', err.message);
+      res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+
+app.get('/api/reports/percent', authenticate,authorizeRole("1"), async (req, res) => {
+ 
+ 
+
+  try {
+    const percentage = await allCompletedPercentage();
+    
+    res.status(200).json({percentage:percentage});
+  } catch (err) {
+    console.error('Error fetching completed tasks:', err.message);
+    res.status(500).json({
+      success: false,
+      message: err.message
+    });
+  }
+});
+app.get('/api/reports/totalJobsCount', authenticate,authorizeRole("1"), async (req, res) => {
+ 
+ 
+
+  try {
+    const totalJobsCount = await allJobsCount();
+    
+    res.status(200).json({totalJobsCount:totalJobsCount});
+  } catch (err) {
+    console.error('Error fetching completed tasks:', err.message);
+    res.status(500).json({
+      success: false,
+      message: err.message
+    });
+  }
+});
+app.get('/api/total-completed', authenticate, authorizeRole("1"), async (req, res) => {
+  const { page = 1, pageSize = 10, search = '', filterByStatus = '', startDate = '', endDate = '' } = req.query;
+
+  try {
+      const { tasks, totalTasks } = await totalCompletedJobs(
+          parseInt(page),
+          parseInt(pageSize),
+          search,
+          filterByStatus,
+          startDate,
+          endDate
+      );
+      res.json({
+          data: tasks,
+          totalTasks,
+          totalPages: Math.ceil(totalTasks / pageSize),
+      });
+  } catch (error) {
+      console.error('Error fetching tasks:', error);
+      res.status(500).json({ error: 'Server Error' });
+  }
+});
+
+app.post('/api/upload-excel', async (req, res) => {
+  const data = req.body;
+  console.log(data); // Logging to see incoming data
+
+  try {
+    await  importExcel(data); // Call the importExcel method on Job
+
+    res.status(200).json({ message: "Data imported successfully" });
+  } catch (error) {
+    console.error("Error processing data:", error);
+    res.status(500).json({ message: 'Error processing data' });
+  }
 });
 
 const PORT = process.env.PORT || 30000;

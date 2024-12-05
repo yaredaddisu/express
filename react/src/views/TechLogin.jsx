@@ -21,7 +21,7 @@ export default function AutoLogin() {
 
             setUser(data.user);
             setToken(data.token);
-            navigate('/dashboard');  // Use navigate here to redirect
+            navigate('/');  // Use navigate here to redirect
         } catch (err) {
             const response = err.response;
             if (response && response.status === 422) {

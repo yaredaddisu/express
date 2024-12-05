@@ -48,7 +48,8 @@ console.log("user", user)
 
         if (userId) {
             try {
-                const response = await axiosClient.get(`/completed/${userId}`);
+                const response = await axiosClient.get(`/completed/${userId}`, 
+                     { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
                 setTasks(response.data.data); // Accessing the data field
                 setIsLoading(false)
 
@@ -179,7 +180,7 @@ console.log("user", user)
                     <p className="mb-2"><strong>Description:</strong> {viewingTaskId.description}</p>
                     <p className="mb-2"><strong>Company:</strong> {viewingTaskId.company}</p>
                     <p className="mb-2"><strong>Location:</strong> {viewingTaskId.location}</p>
-                    <p className="mb-2"><strong>Salary:</strong> ETB {viewingTaskId.salary}</p>
+                    <p className="text-xl font-bold">Salary: {new Intl.NumberFormat('en-ET', { style: 'currency', currency: 'ETB' }).format(viewingTaskId.salary)}</p>
                     <p className="mb-2"><strong>Reference:</strong> {viewingTaskId.Reference}</p>
                     <p className="mb-2"><strong>Phone:</strong> {viewingTaskId.phone}</p>
                    <p className="mb-2"><strong>Status:</strong> {viewingTaskId.status  === "2" ? "Completed" : "Pending"}</p>

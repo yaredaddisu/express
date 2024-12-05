@@ -10,7 +10,7 @@ const SendMessage = ({ chatId, onClose }) => {
 
   // Function to send message via Telegram
   const sendMessageToTelegram = async () => {
-    const token = '6685274704:AAFR-NXKCnfe7RZy9tGq5Swn2A0tDkTsrBU'; // Your bot token
+    const token = '6685274704:AAE7ausiXp1M7AOG0wUB5f0pOO97Q8RDgzE'; // Your bot token
     const telegramApiUrl = `https://api.telegram.org/bot${token}/sendMessage`;
 
     const data = {

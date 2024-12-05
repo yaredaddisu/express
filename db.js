@@ -8,11 +8,14 @@ const mysql = require('mysql2/promise');
 
 
 const pool = mysql.createPool({
-  host: '109.70.148.47',
-  user: 'lomisttx_user', // Replace with your MySQL username
-  password: 'Yared@1997', // Add a comma here
-  database: 'lomisttx_technician_management' // Replace with your database name
+  host: '91.204.209.17',
+  user: 'lomisttx_user',
+  password: 'Yared@1997', // Replace with your actual password
+  database: 'lomisttx_technician_management'
 });
+
+
+
 async function testConnection() {
   try {
     // Get a connection from the pool and test it

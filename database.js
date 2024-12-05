@@ -7,7 +7,7 @@ const { Sequelize } = require('sequelize');
 // });
 
 const sequelize = new Sequelize('lomisttx_technician_management', 'lomisttx_user','Yared@1997', {
-    host: '109.70.148.47',
+    host: '91.204.209.17',
     dialect: 'mysql', // or 'postgres', 'sqlite', etc.
     logging: false, // Turn off logging if you don't need it
 });

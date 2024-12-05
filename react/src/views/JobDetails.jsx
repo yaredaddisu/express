@@ -39,6 +39,27 @@ const JobDetails = () => {
         <p className="text-gray-600">
           <span className="font-bold">Job Reference: {job.Reference}</span>
         </p>
+        <p className="text-gray-600">
+  <span className="font-bold">
+    Created At: {new Date(job.created_at).toLocaleDateString('en-US', {
+      weekday: 'short',   // Short weekday (e.g., Mon)
+      day: 'numeric',     // Day of the month (e.g., 5)
+      month: 'numeric',   // Month as number (e.g., 11)
+      year: '2-digit'     // Last two digits of year (e.g., 24)
+    })}
+  </span>
+</p>
+<p className="text-gray-600">
+  <span className="font-bold">
+    Updated At: {new Date(job.updated_at).toLocaleDateString('en-US', {
+      weekday: 'short',
+      day: 'numeric',
+      month: 'numeric',
+      year: '2-digit'
+    })}
+  </span>
+</p>
+
         <p className="text-gray-700 mb-6">Description: {job.description}</p>
         <div className="space-y-4">
           <p className="text-gray-600">

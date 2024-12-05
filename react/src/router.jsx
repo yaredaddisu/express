@@ -25,6 +25,7 @@ import ConfirmedTasks from './views/ConfirmedTasks.jsx';
 import CompletedJobs from './views/CompletedJobs.jsx';
 import CancelJobs from './views/CancelJobs.jsx';
 import App from './App.jsx';
+import TotalCompletedJobs from './views/TotalCompletedJobs.jsx';
 
 const router = createBrowserRouter([
   {
@@ -47,6 +48,7 @@ const router = createBrowserRouter([
         path: '/orders/form',
         element: <HVACForm />,
       },
+      
       {
         path: '/dashboard',
         element: <Dashboard />,
@@ -103,6 +105,11 @@ const router = createBrowserRouter([
         path: '/cancel-tasks',
         element: <CancelJobs/>,
       },
+ {
+        path: '/total-completed-tasks',
+        element: <TotalCompletedJobs/>,
+      },
+      
     ],
   },
   {

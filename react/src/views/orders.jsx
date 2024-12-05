@@ -123,11 +123,13 @@ export default function orders(){
     {order.approved === "1" ? "Approved" : "Not Approved"}
   </span>
 </td>
-                 <td className="py-3 px-6 text-left">{order.job?.title || "N/A"}</td>
-                 <td className="py-3 px-6 text-left">{order.job?.description || "N/A"}</td>
-                 <td className="py-3 px-6 text-left">{order.job?.company || "N/A"}</td>
-                 <td className="py-3 px-6 text-left">{order.job?.id || "N/A"}</td>
-                 <td className="py-3 px-6 text-left">{order.job?.Reference || "N/A"}</td>
+{/* <pre>{JSON.stringify(order, null, 2)};
+    </pre> */}
+                 <td className="py-3 px-6 text-left">{order.title || "N/A"}</td>
+                 <td className="py-3 px-6 text-left">{order.description || "N/A"}</td>
+                 <td className="py-3 px-6 text-left">{order.company || "N/A"}</td>
+                 <td className="py-3 px-6 text-left">{order.id || "N/A"}</td>
+                 <td className="py-3 px-6 text-left">{order.Reference || "N/A"}</td>
 
         
            
