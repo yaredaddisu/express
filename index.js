@@ -1131,7 +1131,7 @@ const pageAccessToken = 'EAAF1pWMJ19YBO7axqg9PfQSFC69kSZA8eHHaFXBen4q4pibZB1DHEB
 const pageId = '107493672373057';
 const telegramBotToken = '6685274704:AAE7ausiXp1M7AOG0wUB5f0pOO97Q8RDgzE';
 const telegramChatId = '@lomiworks';
-const telegramChatId2 = '@jobsite123';
+const telegramChatId2 = '@etluckybetting';
 
 // API route to post message and images to Facebook and/or Telegram
 app.post('/api/postToFacebook', upload.array('images', 5), async (req, res) => {
