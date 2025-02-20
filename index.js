@@ -1127,7 +1127,7 @@ app.post('/api/send-sms', async (req, res) => {
 
 
 // Facebook and Telegram credentials
-const pageAccessToken = 'EAAF1pWMJ19YBO7bGdXqs0U8hlHZCwfmNGuZC41DVTF3JSFqfsiERfIPU6HZAiZCpRQEWTfUrSRrXwRfZA6DTZBPtHvcdKkLPu25j36tDUsLOZBAFMxsDS0ZBExJvpSAu4bTwgxFdBQcmMZCtduF5rZAdcmOJFeZAS6BXoYjNZAwCs4TJhtm3yUFiJ1wAo149lGC4JN9OaFkyWBZAd1XiUM9ZBqD3LYlfbOwcQZD';
+const pageAccessToken = 'EAAF1pWMJ19YBO6AKdXpgQvDEE7pke4wo5G5cFSyTPmVNWnWhilLMLUZAG6KCdwe6C6e7Ivdd0mgrR1YW9EuMzan6gZBqdlQTBfq66sWtwsnbRmPRdMtro3zRkOJhZB03VL3jgZCtsXlP8ZCGk66fwbAh9BtaruXNA0vH724OKgBn1GNEbPGqR8w7vRhJ3cQp7bWVTy3OLaQw49wCwhoRq7aV4EgsZD';
 const pageId = '107493672373057';
 const telegramBotToken = '6685274704:AAE7ausiXp1M7AOG0wUB5f0pOO97Q8RDgzE';
 const telegramChatId = '@lomiworks';
