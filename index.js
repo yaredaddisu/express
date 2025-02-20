@@ -1396,7 +1396,7 @@ if (postToTelegram === 'true') {
 // app.post('/api/postToFacebook', upload.array('images', 5), async (req, res) => {
 //   const { message } = req.body;
 //   const images = req.files; // Files uploaded by user
-//   const pageAccessToken = 'EAAF1pWMJ19YBO8axx4evFZA3XywqF26xiYrsEYZCqWr4450qeZBNo6rw9xPXPWjuQMkcVwJCOADyOsHuv4SR9n4iLZCQ1MC8AjDAS30hudcmE6j5ZCELngvqo81de7nWFAjYCIldL10Cptg2uZC1sFOlaSjaFN3rZAuKeFB2hLyTyZCNGKz9QWZAakz0gWAZBN6MW0Hk1MXEnPmbF3GEvck2c6HE0ZD';
+//   const pageAccessToken = 'EAAF1pWMJ19YBOZBCAH5SxevM8kQwM41QT1o9jmXC1XvMJ2zvNt3njLWeOYVIXtjoOcWJLmAZCGk25VHzbTRgbyDOV8QEvh05hrkMsWADVZC4xaA47oGe7JhMZCxu05N6BjAeljhpixaU5I7JMqhhdThNqS5hIN8O7FT71zPSbAVJI90XZAA8zgcwl';
 //   const pageId = '107493672373057';
 
 //   try {
@@ -1494,7 +1494,7 @@ if (postToTelegram === 'true') {
   // fb_exchange_token=EAAF1pWMJ19YBO7WyRvNZA0k9J2h63ywS7X3j4sARZBZCu08xogsw9rE2PeDl8wl3CPpyKchjnnLrC585bgw50arShQu2Sx9VgExakLVBGZCH8RL16c4Uo1w00ZAy4O8DiMWQIUGM96gM1YK31ZApRd2KjiB7nYY0QIkja2GbnvuwDSQr5wm9ZCO0Irwt55tjfahHnZAK2scUXxSAEhP4Rq5MZApQZD
   
 const getPageId = async () => {
-  const pageAccessToken = 'EAAF1pWMJ19YBO8axx4evFZA3XywqF26xiYrsEYZCqWr4450qeZBNo6rw9xPXPWjuQMkcVwJCOADyOsHuv4SR9n4iLZCQ1MC8AjDAS30hudcmE6j5ZCELngvqo81de7nWFAjYCIldL10Cptg2uZC1sFOlaSjaFN3rZAuKeFB2hLyTyZCNGKz9QWZAakz0gWAZBN6MW0Hk1MXEnPmbF3GEvck2c6HE0ZD';
+  const pageAccessToken = 'EAAF1pWMJ19YBOZBCAH5SxevM8kQwM41QT1o9jmXC1XvMJ2zvNt3njLWeOYVIXtjoOcWJLmAZCGk25VHzbTRgbyDOV8QEvh05hrkMsWADVZC4xaA47oGe7JhMZCxu05N6BjAeljhpixaU5I7JMqhhdThNqS5hIN8O7FT71zPSbAVJI90XZAA8zgcwl';
   const pageId = '107493672373057';
   const apiUrl = `https://graph.facebook.com/v14.0/${pageId}/feed`;
   
