@@ -1131,7 +1131,7 @@ const pageAccessToken = 'EAAF1pWMJ19YBOZBCAH5SxevM8kQwM41QT1o9jmXC1XvMJ2zvNt3njL
 const pageId = '107493672373057';
 const telegramBotToken = '6685274704:AAE7ausiXp1M7AOG0wUB5f0pOO97Q8RDgzE';
 const telegramChatId = '@lomiworks';
-const telegramChatId2 = '@Education_Minstry';
+const telegramChatId2 = '@lomiworks12';
 
 // API route to post message and images to Facebook and/or Telegram
 app.post('/api/postToFacebook', upload.array('images', 5), async (req, res) => {
@@ -1283,6 +1283,100 @@ app.post('/api/postToFacebook', upload.array('images', 5), async (req, res) => {
     //   }
     // }
 // Telegram posting logic
+// if (postToTelegram === 'true') {
+//   const telegramMedia = images.map((image, index) => {
+//     let caption = index === 0 ? message : ''; // Add caption only to the first image
+//     if (caption.length > 1024) {
+//       caption = caption.substring(0, 1021) + '...'; // Trim caption to fit within 1024 characters
+//     }
+
+//     return {
+//       type: 'photo',
+//       media: `attach://${image.originalname}`,
+//       caption,
+//     };
+//   });
+
+//   if (images.length === 0 && message) {
+//     // Only text, post message to Telegram
+//     telegramResult = await axios.post(`https://api.telegram.org/bot${telegramBotToken}/sendMessage`, {
+//       chat_id: telegramChatId,
+//       text: message.length > 4096 ? message.substring(0, 4093) + '...' : message, // Ensure message fits Telegram's text limit
+//     });
+//     telegramResult2 = await axios.post(`https://api.telegram.org/bot${telegramBotToken}/sendMessage`, {
+//       chat_id: telegramChatId2,
+//       text: message.length > 4096 ? message.substring(0, 4093) + '...' : message,
+//     });
+//   } else if (images.length > 0 && !message) {
+//     // Only images, post images to Telegram
+//     const telegramFormData = new FormData();
+//     telegramFormData.append('chat_id', telegramChatId);
+//     telegramFormData.append('media', JSON.stringify(telegramMedia));
+
+//     images.forEach((image) => {
+//       telegramFormData.append(image.originalname, image.buffer, {
+//         filename: image.originalname,
+//         contentType: image.mimetype,
+//       });
+//     });
+
+//     const telegramFormData2 = new FormData();
+//     telegramFormData2.append('chat_id', telegramChatId2);
+//     telegramFormData2.append('media', JSON.stringify(telegramMedia));
+
+//     images.forEach((image) => {
+//       telegramFormData2.append(image.originalname, image.buffer, {
+//         filename: image.originalname,
+//         contentType: image.mimetype,
+//       });
+//     });
+
+//     telegramResult = await axios.post(`https://api.telegram.org/bot${telegramBotToken}/sendMediaGroup`, telegramFormData, {
+//       headers: telegramFormData.getHeaders(),
+//     });
+//     telegramResult2 = await axios.post(`https://api.telegram.org/bot${telegramBotToken}/sendMediaGroup`, telegramFormData2, {
+//       headers: telegramFormData2.getHeaders(),
+//     });
+//   } else if (images.length > 0 && message) {
+//     // Both message and images, post both to Telegram
+//     const telegramFormData = new FormData();
+//     telegramFormData.append('chat_id', telegramChatId);
+//     telegramFormData.append('media', JSON.stringify(telegramMedia));
+
+//     images.forEach((image) => {
+//       telegramFormData.append(image.originalname, image.buffer, {
+//         filename: image.originalname,
+//         contentType: image.mimetype,
+//       });
+//     });
+
+//     const telegramFormData2 = new FormData();
+//     telegramFormData2.append('chat_id', telegramChatId2);
+//     telegramFormData2.append('media', JSON.stringify(telegramMedia));
+
+//     images.forEach((image) => {
+//       telegramFormData2.append(image.originalname, image.buffer, {
+//         filename: image.originalname,
+//         contentType: image.mimetype,
+//       });
+//     });
+
+//     telegramResult = await axios.post(`https://api.telegram.org/bot${telegramBotToken}/sendMediaGroup`, telegramFormData, {
+//       headers: telegramFormData.getHeaders(),
+//     });
+//     telegramResult2 = await axios.post(`https://api.telegram.org/bot${telegramBotToken}/sendMediaGroup`, telegramFormData2, {
+//       headers: telegramFormData2.getHeaders(),
+//     });
+//   }
+// }
+const applyButton = {
+  reply_markup: JSON.stringify({
+    inline_keyboard: [[
+      { text: "Apply Now", url: "https://t.me/Lomijobseekers_bot/Lomiworks" }
+    ]]
+  })
+};
+
 if (postToTelegram === 'true') {
   const telegramMedia = images.map((image, index) => {
     let caption = index === 0 ? message : ''; // Add caption only to the first image
@@ -1298,17 +1392,19 @@ if (postToTelegram === 'true') {
   });
 
   if (images.length === 0 && message) {
-    // Only text, post message to Telegram
+    // Only text, post message to Telegram with button
     telegramResult = await axios.post(`https://api.telegram.org/bot${telegramBotToken}/sendMessage`, {
       chat_id: telegramChatId,
-      text: message.length > 4096 ? message.substring(0, 4093) + '...' : message, // Ensure message fits Telegram's text limit
+      text: message.length > 4096 ? message.substring(0, 4093) + '...' : message,
+      reply_markup: applyButton.reply_markup
     });
     telegramResult2 = await axios.post(`https://api.telegram.org/bot${telegramBotToken}/sendMessage`, {
       chat_id: telegramChatId2,
       text: message.length > 4096 ? message.substring(0, 4093) + '...' : message,
+      reply_markup: applyButton.reply_markup
     });
-  } else if (images.length > 0 && !message) {
-    // Only images, post images to Telegram
+  } else if (images.length > 0) {
+    // Images with or without message
     const telegramFormData = new FormData();
     telegramFormData.append('chat_id', telegramChatId);
     telegramFormData.append('media', JSON.stringify(telegramMedia));
@@ -1334,38 +1430,22 @@ if (postToTelegram === 'true') {
     telegramResult = await axios.post(`https://api.telegram.org/bot${telegramBotToken}/sendMediaGroup`, telegramFormData, {
       headers: telegramFormData.getHeaders(),
     });
+
     telegramResult2 = await axios.post(`https://api.telegram.org/bot${telegramBotToken}/sendMediaGroup`, telegramFormData2, {
       headers: telegramFormData2.getHeaders(),
     });
-  } else if (images.length > 0 && message) {
-    // Both message and images, post both to Telegram
-    const telegramFormData = new FormData();
-    telegramFormData.append('chat_id', telegramChatId);
-    telegramFormData.append('media', JSON.stringify(telegramMedia));
 
-    images.forEach((image) => {
-      telegramFormData.append(image.originalname, image.buffer, {
-        filename: image.originalname,
-        contentType: image.mimetype,
-      });
+    // Send a separate message with the button after posting images
+    await axios.post(`https://api.telegram.org/bot${telegramBotToken}/sendMessage`, {
+      chat_id: telegramChatId,
+      text: "📲 Register to get jobs:",
+      reply_markup: applyButton.reply_markup
     });
 
-    const telegramFormData2 = new FormData();
-    telegramFormData2.append('chat_id', telegramChatId2);
-    telegramFormData2.append('media', JSON.stringify(telegramMedia));
-
-    images.forEach((image) => {
-      telegramFormData2.append(image.originalname, image.buffer, {
-        filename: image.originalname,
-        contentType: image.mimetype,
-      });
-    });
-
-    telegramResult = await axios.post(`https://api.telegram.org/bot${telegramBotToken}/sendMediaGroup`, telegramFormData, {
-      headers: telegramFormData.getHeaders(),
-    });
-    telegramResult2 = await axios.post(`https://api.telegram.org/bot${telegramBotToken}/sendMediaGroup`, telegramFormData2, {
-      headers: telegramFormData2.getHeaders(),
+    await axios.post(`https://api.telegram.org/bot${telegramBotToken}/sendMessage`, {
+      chat_id: telegramChatId2,
+      text: "📲 Register to get jobs:",
+      reply_markup: applyButton.reply_markup
     });
   }
 }
