@@ -1369,84 +1369,134 @@ app.post('/api/postToFacebook', upload.array('images', 5), async (req, res) => {
 //     });
 //   }
 // }
-const applyButton = {
-  reply_markup: JSON.stringify({
-    inline_keyboard: [[
-      { text: "Apply Now", url: "https://t.me/Lomijobseekers_bot/Lomiworks" }
-    ]]
-  })
-};
-
 if (postToTelegram === 'true') {
-  const telegramMedia = images.map((image, index) => {
-    let caption = index === 0 ? message : ''; // Add caption only to the first image
-    if (caption.length > 1024) {
-      caption = caption.substring(0, 1021) + '...'; // Trim caption to fit within 1024 characters
-    }
+  const telegramButton = {
+    inline_keyboard: [[
+      { 
+        text: "Apply Now", 
+        url: "https://t.me/Lomijobseekers_bot/Lomiworks" 
+      }
+    ]]
+  };
 
-    return {
+  // For text-only posts
+  if (images.length === 0 && message) {
+    const trimmedMessage = message.length > 4096 ? 
+      message.substring(0, 4093) + '...' : message;
+    
+    // First chat
+    telegramResult = await axios.post(
+      `https://api.telegram.org/bot${telegramBotToken}/sendMessage`, {
+        chat_id: telegramChatId,
+        text: trimmedMessage,
+        reply_markup: telegramButton
+      }
+    );
+
+    // Second chat
+    telegramResult2 = await axios.post(
+      `https://api.telegram.org/bot${telegramBotToken}/sendMessage`, {
+        chat_id: telegramChatId2,
+        text: trimmedMessage,
+        reply_markup: telegramButton
+      }
+    );
+  }
+  // For single image posts
+  else if (images.length === 1) {
+    const caption = message ? (message.length > 1024 ? 
+      message.substring(0, 1021) + '...' : message) : '';
+    
+    // First chat
+    const formData1 = new FormData();
+    formData1.append('chat_id', telegramChatId);
+    formData1.append('photo', images[0].buffer, { 
+      filename: images[0].originalname 
+    });
+    formData1.append('caption', caption);
+    formData1.append('reply_markup', JSON.stringify(telegramButton));
+
+    // Second chat
+    const formData2 = new FormData();
+    formData2.append('chat_id', telegramChatId2);
+    formData2.append('photo', images[0].buffer, { 
+      filename: images[0].originalname 
+    });
+    formData2.append('caption', caption);
+    formData2.append('reply_markup', JSON.stringify(telegramButton));
+
+    telegramResult = await axios.post(
+      `https://api.telegram.org/bot${telegramBotToken}/sendPhoto`, 
+      formData1, 
+      { headers: formData1.getHeaders() }
+    );
+
+    telegramResult2 = await axios.post(
+      `https://api.telegram.org/bot${telegramBotToken}/sendPhoto`, 
+      formData2, 
+      { headers: formData2.getHeaders() }
+    );
+  }
+  // For multiple image posts
+  else if (images.length > 1) {
+    const telegramMedia = images.map((image, index) => ({
       type: 'photo',
       media: `attach://${image.originalname}`,
-      caption,
-    };
-  });
+      caption: index === 0 ? (message || '') : '',
+    }));
 
-  if (images.length === 0 && message) {
-    // Only text, post message to Telegram with button
-    telegramResult = await axios.post(`https://api.telegram.org/bot${telegramBotToken}/sendMessage`, {
-      chat_id: telegramChatId,
-      text: message.length > 4096 ? message.substring(0, 4093) + '...' : message,
-      reply_markup: applyButton.reply_markup
-    });
-    telegramResult2 = await axios.post(`https://api.telegram.org/bot${telegramBotToken}/sendMessage`, {
-      chat_id: telegramChatId2,
-      text: message.length > 4096 ? message.substring(0, 4093) + '...' : message,
-      reply_markup: applyButton.reply_markup
-    });
-  } else if (images.length > 0) {
-    // Images with or without message
-    const telegramFormData = new FormData();
-    telegramFormData.append('chat_id', telegramChatId);
-    telegramFormData.append('media', JSON.stringify(telegramMedia));
-
-    images.forEach((image) => {
-      telegramFormData.append(image.originalname, image.buffer, {
+    // First chat
+    const formData1 = new FormData();
+    formData1.append('chat_id', telegramChatId);
+    formData1.append('media', JSON.stringify(telegramMedia));
+    images.forEach(image => {
+      formData1.append(image.originalname, image.buffer, {
         filename: image.originalname,
-        contentType: image.mimetype,
+        contentType: image.mimetype
       });
     });
 
-    const telegramFormData2 = new FormData();
-    telegramFormData2.append('chat_id', telegramChatId2);
-    telegramFormData2.append('media', JSON.stringify(telegramMedia));
-
-    images.forEach((image) => {
-      telegramFormData2.append(image.originalname, image.buffer, {
+    // Second chat
+    const formData2 = new FormData();
+    formData2.append('chat_id', telegramChatId2);
+    formData2.append('media', JSON.stringify(telegramMedia));
+    images.forEach(image => {
+      formData2.append(image.originalname, image.buffer, {
         filename: image.originalname,
-        contentType: image.mimetype,
+        contentType: image.mimetype
       });
     });
 
-    telegramResult = await axios.post(`https://api.telegram.org/bot${telegramBotToken}/sendMediaGroup`, telegramFormData, {
-      headers: telegramFormData.getHeaders(),
-    });
+    // Send media groups first
+    await axios.post(
+      `https://api.telegram.org/bot${telegramBotToken}/sendMediaGroup`, 
+      formData1, 
+      { headers: formData1.getHeaders() }
+    );
+    await axios.post(
+      `https://api.telegram.org/bot${telegramBotToken}/sendMediaGroup`, 
+      formData2, 
+      { headers: formData2.getHeaders() }
+    );
 
-    telegramResult2 = await axios.post(`https://api.telegram.org/bot${telegramBotToken}/sendMediaGroup`, telegramFormData2, {
-      headers: telegramFormData2.getHeaders(),
-    });
-
-    // Send a separate message with the button after posting images
-    await axios.post(`https://api.telegram.org/bot${telegramBotToken}/sendMessage`, {
-      chat_id: telegramChatId,
-      text: "📲 Register to get jobs:",
-      reply_markup: applyButton.reply_markup
-    });
-
-    await axios.post(`https://api.telegram.org/bot${telegramBotToken}/sendMessage`, {
-      chat_id: telegramChatId2,
-      text: "📲 Register to get jobs:",
-      reply_markup: applyButton.reply_markup
-    });
+    // Follow-up message with button
+    if (message) {
+      const buttonMessage = "Apply for this position:";
+      await axios.post(
+        `https://api.telegram.org/bot${telegramBotToken}/sendMessage`, {
+          chat_id: telegramChatId,
+          text: buttonMessage,
+          reply_markup: telegramButton
+        }
+      );
+      await axios.post(
+        `https://api.telegram.org/bot${telegramBotToken}/sendMessage`, {
+          chat_id: telegramChatId2,
+          text: buttonMessage,
+          reply_markup: telegramButton
+        }
+      );
+    }
   }
 }
 
