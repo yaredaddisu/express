@@ -1375,10 +1375,11 @@ if (postToTelegram === 'true') {
     inline_keyboard: [[
       { 
         text: "Apply Now", 
-        url: applyUrl
+        url: applyUrl.trim() // Trim extra spaces
       }
     ]]
   };
+  
 
   // For text-only posts
   if (images.length === 0 && message) {
