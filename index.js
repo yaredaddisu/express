@@ -1369,18 +1369,18 @@ app.post('/api/postToFacebook', upload.array('images', 5), async (req, res) => {
 //     });
 //   }
 // }
-
 if (postToTelegram === 'true') {
+  const defaultUrl = "https://t.me/Lomijobseekers_bot/Lomiworks";
+
   const telegramButton = {
     inline_keyboard: [[
       { 
         text: "Apply Now", 
-        url: applyUrl.trim() // Trim extra spaces
+        url: (applyUrl && applyUrl.trim().startsWith("http")) ? applyUrl.trim() : defaultUrl
       }
     ]]
   };
   
-
   // For text-only posts
   if (images.length === 0 && message) {
     const trimmedMessage = message.length > 4096 ? 
