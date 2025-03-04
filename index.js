@@ -1135,7 +1135,7 @@ const telegramChatId2 = '@lomiworks12';
 
 // API route to post message and images to Facebook and/or Telegram
 app.post('/api/postToFacebook', upload.array('images', 5), async (req, res) => {
-  const { message, postToFacebook, postToTelegram } = req.body;
+  const { message, postToFacebook, postToTelegram,applyUrl } = req.body;
   const images = req.files; // Images uploaded by user
   
   try {
@@ -1369,12 +1369,13 @@ app.post('/api/postToFacebook', upload.array('images', 5), async (req, res) => {
 //     });
 //   }
 // }
+
 if (postToTelegram === 'true') {
   const telegramButton = {
     inline_keyboard: [[
       { 
         text: "Apply Now", 
-        url: "https://t.me/Lomijobseekers_bot/Lomiworks" 
+        url: applyUrl
       }
     ]]
   };
