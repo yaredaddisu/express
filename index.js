@@ -1042,7 +1042,7 @@ app.post('/api/send-sms', async (req, res) => {
 //   const pageAccessToken = 'EAAF1pWMJ19YBO7axqg9PfQSFC69kSZA8eHHaFXBen4q4pibZB1DHEBi6pNYspCuZAVON1ZBv3joFXgwBTOwBsIl9ScDk9kHE4Coty3IpN7vFZCD6RQlMN0GmkqDcos2dFQY8YWEJZAt386BZCxY4bwvnkXvdDmg8z8j8CpwwlCQJ1t2a4vMA5XKx1sN1g5vu6AZD';
 //   const pageId = '107493672373057';
 
-//   const telegramBotToken = '6685274704:AAE7ausiXp1M7AOG0wUB5f0pOO97Q8RDgzE'; // Your bot token
+//   const telegramBotToken = '6685274704:AAH17i4eo0-P0BezYm63epEec3fU5kw9OCc'; // Your bot token
 //   const telegramChatId = '@lomiworks';
 //   const telegramChatId2 = '@jobsite123';
 
@@ -1129,8 +1129,8 @@ app.post('/api/send-sms', async (req, res) => {
 // Facebook and Telegram credentials
 const pageAccessToken = 'EAAF1pWMJ19YBOZBCAH5SxevM8kQwM41QT1o9jmXC1XvMJ2zvNt3njLWeOYVIXtjoOcWJLmAZCGk25VHzbTRgbyDOV8QEvh05hrkMsWADVZC4xaA47oGe7JhMZCxu05N6BjAeljhpixaU5I7JMqhhdThNqS5hIN8O7FT71zPSbAVJI90XZAA8zgcwl';
 const pageId = '107493672373057';
-const telegramBotToken = '6685274704:AAE7ausiXp1M7AOG0wUB5f0pOO97Q8RDgzE';
-const telegramChatId = '@lomiworks';
+const telegramBotToken = '6685274704:AAH17i4eo0-P0BezYm63epEec3fU5kw9OCc';
+const telegramChatId = '@anchor_business';
 const telegramChatId2 = '@lomiworks12';
 
 // API route to post message and images to Facebook and/or Telegram
@@ -1391,7 +1391,7 @@ if (postToTelegram === 'true') {
       `https://api.telegram.org/bot${telegramBotToken}/sendMessage`, {
         chat_id: telegramChatId,
         text: trimmedMessage,
-        reply_markup: telegramButton
+        //reply_markup: telegramButton
       }
     );
 
@@ -1400,7 +1400,7 @@ if (postToTelegram === 'true') {
       `https://api.telegram.org/bot${telegramBotToken}/sendMessage`, {
         chat_id: telegramChatId2,
         text: trimmedMessage,
-        reply_markup: telegramButton
+       // reply_markup: telegramButton
       }
     );
   }
@@ -1416,7 +1416,7 @@ if (postToTelegram === 'true') {
       filename: images[0].originalname 
     });
     formData1.append('caption', caption);
-    formData1.append('reply_markup', JSON.stringify(telegramButton));
+    //formData1.append('reply_markup', JSON.stringify(telegramButton));
 
     // Second chat
     const formData2 = new FormData();
@@ -1425,7 +1425,7 @@ if (postToTelegram === 'true') {
       filename: images[0].originalname 
     });
     formData2.append('caption', caption);
-    formData2.append('reply_markup', JSON.stringify(telegramButton));
+   // formData2.append('reply_markup', JSON.stringify(telegramButton));
 
     telegramResult = await axios.post(
       `https://api.telegram.org/bot${telegramBotToken}/sendPhoto`, 
@@ -1482,23 +1482,23 @@ if (postToTelegram === 'true') {
     );
 
     // Follow-up message with button
-    if (message) {
-      const buttonMessage = "Apply for this position:";
-      await axios.post(
-        `https://api.telegram.org/bot${telegramBotToken}/sendMessage`, {
-          chat_id: telegramChatId,
-          text: buttonMessage,
-          reply_markup: telegramButton
-        }
-      );
-      await axios.post(
-        `https://api.telegram.org/bot${telegramBotToken}/sendMessage`, {
-          chat_id: telegramChatId2,
-          text: buttonMessage,
-          reply_markup: telegramButton
-        }
-      );
-    }
+    // if (message) {
+    //   const buttonMessage = "Apply for this position:";
+    //   await axios.post(
+    //     `https://api.telegram.org/bot${telegramBotToken}/sendMessage`, {
+    //       chat_id: telegramChatId,
+    //       text: buttonMessage,
+    //       reply_markup: telegramButton
+    //     }
+    //   );
+    //   await axios.post(
+    //     `https://api.telegram.org/bot${telegramBotToken}/sendMessage`, {
+    //       chat_id: telegramChatId2,
+    //       text: buttonMessage,
+    //       reply_markup: telegramButton
+    //     }
+    //   );
+    // }
   }
 }
 
